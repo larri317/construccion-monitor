@@ -1,0 +1,54 @@
+name: Monitor Construccion
+
+on:
+  schedule:
+    - cron: "0 7 * * *"
+  workflow_dispatch:
+    inputs:
+      force_email:
+        description: "Enviar email aunque no haya alertas"
+        required: false
+        default: "false"
+        type: boolean
+
+jobs:
+  monitor:
+    name: "Scraping y Alertas"
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run price monitor
+        env:
+          EMAIL_USER: ${{ secrets.EMAIL_USER }}
+          EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
+          EMAIL_TO:   ${{ secrets.EMAIL_TO }}
+        run: |
+          ARGS=""
+          if [ "${{ github.event.inputs.force_email }}" = "true" ]; then
+            ARGS="--force-email"
+          fi
+          python src/main.py $ARGS
+
+      - name: Commit price data
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/prices.csv
+          git diff --staged --quiet || git commit -m "📊 Precios actualizados $(date +'%Y-%m-%d')"
+          git push
