@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Monitor de precios · Construcción</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  /* ============ CONFIG: cambia esta URL por la de TU repo ============
+     Formato: https://raw.githubusercontent.com/USUARIO/REPO/main/data/prices.csv
+     ================================================================= */
+
+  :root{
+    --sika-yellow:#FFD500;
+    --ink:#111418;
+    --ink-2:#3a3f47;
+    --paper:#f6f5f1;
+    --card:#ffffff;
+    --line:#e4e2da;
+    --up:#d23b2e;
+    --down:#1f9d57;
+    --muted:#8a8f98;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:"Inter","Helvetica Neue",Arial,sans-serif;
+    background:var(--paper);color:var(--ink);
+    -webkit-font-smoothing:antialiased;
+  }
+  /* ---- Topbar ---- */
+  header{
+    background:var(--ink);color:#fff;
+    padding:18px 28px;display:flex;align-items:center;gap:18px;
+    border-bottom:5px solid var(--sika-yellow);
+  }
+  .logo{
+    font-weight:800;font-size:20px;letter-spacing:-.5px;
+    background:var(--sika-yellow);color:var(--ink);
+    padding:6px 12px;border-radius:3px;
+  }
+  header h1{font-size:16px;font-weight:600;letter-spacing:.2px}
+  header .sub{font-size:12px;color:#9aa0a8;margin-top:2px}
+  .updated{margin-left:auto;font-size:12px;color:#9aa0a8;text-align:right}
+
+  /* ---- Tabs ---- */
+  nav{
+    display:flex;gap:2px;background:var(--ink);padding:0 20px;
+    flex-wrap:wrap;
+  }
+  nav button{
+    background:none;border:none;color:#b9bdc4;cursor:pointer;
+    padding:13px 18px;font-size:13.5px;font-weight:600;font-family:inherit;
+    border-bottom:3px solid transparent;transition:.15s;
+  }
+  nav button:hover{color:#fff}
+  nav button.active{color:var(--sika-yellow);border-bottom-color:var(--sika-yellow)}
+
+  main{max-width:1180px;margin:0 auto;padding:28px 20px 60px}
+  .view{display:none}
+  .view.active{display:block}
+
+  h2.section{
+    font-size:13px;text-transform:uppercase;letter-spacing:1.5px;
+    color:var(--ink-2);margin:6px 0 16px;font-weight:700;
+    display:flex;align-items:center;gap:10px;
+  }
+  h2.section::before{content:"";width:22px;height:3px;background:var(--sika-yellow)}
+
+  /* ---- KPI cards ---- */
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-bottom:30px}
+  .kpi{
+    background:var(--card);border:1px solid var(--line);border-radius:8px;
+    padding:18px 18px 16px;position:relative;overflow:hidden;
+  }
+  .kpi::after{content:"";position:absolute;top:0;left:0;width:4px;height:100%;background:var(--sika-yellow)}
+  .kpi .label{font-size:11.5px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);font-weight:600}
+  .kpi .val{font-size:30px;font-weight:800;letter-spacing:-1px;margin-top:6px}
+  .kpi .note{font-size:12px;color:var(--ink-2);margin-top:4px}
+
+  /* ---- Cards / tables ---- */
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  @media(max-width:820px){.grid2{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:20px;margin-bottom:18px}
+  .card h3{font-size:15px;font-weight:700;margin-bottom:14px}
+  .card.click{cursor:pointer;transition:.15s}
+  .card.click:hover{border-color:var(--ink);transform:translateY(-2px)}
+
+  table{width:100%;border-collapse:collapse;font-size:13.5px}
+  th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.5px;
+     color:var(--muted);font-weight:700;padding:8px 10px;border-bottom:2px solid var(--line)}
+  td{padding:9px 10px;border-bottom:1px solid var(--line)}
+  tr:last-child td{border-bottom:none}
+  .tag{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px}
+  .tag.sika{background:var(--sika-yellow);color:var(--ink)}
+  .tag.comp{background:#eceae3;color:var(--ink-2)}
+  .price{font-weight:700;font-variant-numeric:tabular-nums}
+  .best{color:var(--down);font-weight:700}
+  .pos{font-weight:700;font-variant-numeric:tabular-nums}
+  .pos.up{color:var(--up)} .pos.down{color:var(--down)}
+
+  .chartbox{position:relative;height:300px}
+  select{
+    font-family:inherit;font-size:13px;padding:8px 12px;border:1px solid var(--line);
+    border-radius:6px;background:#fff;color:var(--ink);
+  }
+  .empty{
+    text-align:center;padding:60px 20px;color:var(--muted);
+    background:var(--card);border:1px dashed var(--line);border-radius:8px;
+  }
+  .empty b{color:var(--ink);font-size:16px;display:block;margin-bottom:8px}
+  .footer{margin-top:30px;font-size:12px;color:var(--muted);text-align:center}
+  code{background:#eceae3;padding:2px 6px;border-radius:4px;font-size:12px}
+</style>
+</head>
+<body>
+
+<header>
+  <span class="logo">SIKA</span>
+  <div>
+    <h1>Monitor de precios · Construcción</h1>
+    <div class="sub">Selladores y espumas de poliuretano · Sika vs competencia</div>
+  </div>
+  <div class="updated" id="updated">Cargando…</div>
+</header>
+
+<nav id="nav"></nav>
+
+<main>
+  <!-- RESUMEN -->
+  <section class="view active" id="view-resumen">
+    <h2 class="section">Resumen general</h2>
+    <div class="kpis" id="kpis"></div>
+    <div class="grid2">
+      <div class="card click" onclick="goTab('selladores')">
+        <h3>🧴 Selladores PU</h3>
+        <div id="resumen-selladores"></div>
+      </div>
+      <div class="card click" onclick="goTab('espumas')">
+        <h3>🧯 Espumas PU</h3>
+        <div id="resumen-espumas"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SELLADORES -->
+  <section class="view" id="view-selladores">
+    <h2 class="section">Selladores PU — Sikaflex 11 FC vs competencia</h2>
+    <div class="card"><div class="chartbox"><canvas id="chart-selladores"></canvas></div></div>
+    <div class="card"><h3>Precios actuales</h3><div id="tabla-selladores"></div></div>
+  </section>
+
+  <!-- ESPUMAS -->
+  <section class="view" id="view-espumas">
+    <h2 class="section">Espumas PU — Sika Boom vs competencia</h2>
+    <div class="card"><div class="chartbox"><canvas id="chart-espumas"></canvas></div></div>
+    <div class="card"><h3>Precios actuales</h3><div id="tabla-espumas"></div></div>
+  </section>
+
+  <!-- COMPARATIVA -->
+  <section class="view" id="view-comparativa">
+    <h2 class="section">Comparativa — posición de Sika frente al mercado</h2>
+    <div class="card"><h3>Sika vs media de la competencia (por categoría)</h3><div id="tabla-comparativa"></div></div>
+  </section>
+
+  <!-- EVOLUCION -->
+  <section class="view" id="view-evolucion">
+    <h2 class="section">Evolución de precios</h2>
+    <div class="card">
+      <div style="margin-bottom:14px"><label style="font-size:13px;font-weight:600;margin-right:8px">Producto:</label>
+        <select id="evo-select" onchange="renderEvo()"></select></div>
+      <div class="chartbox"><canvas id="chart-evo"></canvas></div>
+    </div>
+  </section>
+
+  <div class="footer" id="footer"></div>
+</main>
+
+<script>
+/* ============ CONFIG ============ */
+/* Cambia USUARIO y REPO por los de tu repositorio de GitHub */
+const CSV_URL = "https://raw.githubusercontent.com/USUARIO/REPO/main/data/prices.csv";
+
+/* Nombres legibles de cada producto */
+const NAMES = {
+  SIKAFLEX_11FC:"Sikaflex-11 FC Purform", BOSTIK_P795:"Bostik P795 Premium",
+  BOSTIK_P360:"Bostik P360", SOUDAL_SOUDASEAL:"Soudal Soudaseal", MAPEI_PU45:"Mapei Mapeflex PU45",
+  SIKABOOM_180:"Sika Boom-180 (cánula)", SIKABOOM_580:"Sika Boom-580 (pistola)",
+  SIKABOOM_151:"Sika Boom-151 Multiposition", SIKABOOM_582:"Sika Boom-582 (tejas)",
+  SIKABOOM_584:"Sika Boom-584 (tejas)", SIKABOOM_420_FIRE:"Sika Boom-420 Fire",
+  QUILOSA_ORBAFOAM_CAN:"Quilosa Orbafoam (cánula)", QUILOSA_ORBAFOAM_PIS:"Quilosa Orbafoam (pistola)",
+  QUILOSA_ORBAFOAM_TEJ:"Quilosa Orbafoam (tejas)", QUILOSA_FIRESTOP:"Quilosa Fire Stop",
+  SOUDAL_SOUDAFOAM_CAN:"Soudal Soudafoam (cánula)", SOUDAL_SOUDAFOAM_PIS:"Soudal Soudafoam (pistola)",
+  SOUDAL_SOUDAFOAM_FR:"Soudal Soudafoam FR", PENOSIL_PISTOLA:"Penosil 123 (pistola)"
+};
+const TABS=[["resumen","Resumen"],["selladores","Selladores"],["espumas","Espumas"],
+            ["comparativa","Comparativa"],["evolucion","Evolución"]];
+
+let DATA=[];   // filas del CSV
+let charts={};
+
+/* ---------- arranque ---------- */
+buildNav();
+loadData();
+
+function buildNav(){
+  const nav=document.getElementById("nav");
+  TABS.forEach(([id,label],i)=>{
+    const b=document.createElement("button");
+    b.textContent=label; b.id="tab-"+id; if(i===0)b.classList.add("active");
+    b.onclick=()=>goTab(id); nav.appendChild(b);
+  });
+}
+function goTab(id){
+  document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
+  document.querySelectorAll("nav button").forEach(b=>b.classList.remove("active"));
+  document.getElementById("view-"+id).classList.add("active");
+  document.getElementById("tab-"+id).classList.add("active");
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+async function loadData(){
+  try{
+    const res=await fetch(CSV_URL+"?t="+Date.now());
+    if(!res.ok) throw new Error("HTTP "+res.status);
+    const text=await res.text();
+    DATA=parseCSV(text);
+  }catch(e){
+    DATA=[];
+    document.getElementById("updated").textContent="Sin datos aún";
+  }
+  render();
+}
+
+function parseCSV(text){
+  const lines=text.trim().split(/\r?\n/);
+  if(lines.length<2) return [];
+  const head=lines[0].split(",");
+  return lines.slice(1).map(l=>{
+    const c=l.split(","); const o={};
+    head.forEach((h,i)=>o[h.trim()]=(c[i]||"").trim());
+    o.price=parseFloat(o.price); return o;
+  }).filter(r=>!isNaN(r.price));
+}
+
+/* ---------- helpers ---------- */
+const isSika=b=>b==="Sika";
+function latestByProduct(){
+  // último precio (fecha más reciente) por producto, mínimo entre tiendas
+  const map={};
+  DATA.forEach(r=>{
+    const k=r.product;
+    if(!map[k]||r.date>map[k].date){map[k]={date:r.date,prices:[],brand:r.brand,category:r.category};}
+  });
+  DATA.forEach(r=>{ if(map[r.product]&&r.date===map[r.product].date) map[r.product].prices.push(r.price); });
+  const out={};
+  Object.entries(map).forEach(([k,v])=>out[k]={
+    price:Math.min(...v.prices), avg:v.prices.reduce((a,b)=>a+b,0)/v.prices.length,
+    brand:v.brand, category:v.category, date:v.date, n:v.prices.length});
+  return out;
+}
+
+/* ---------- render principal ---------- */
+function render(){
+  if(!DATA.length){ renderEmpty(); return; }
+  const dates=[...new Set(DATA.map(r=>r.date))].sort();
+  document.getElementById("updated").textContent="Última actualización: "+dates[dates.length-1];
+  renderKPIs(); renderCategoria("selladores","Selladores"); renderCategoria("espumas","Espumas");
+  renderResumenCat("selladores","Selladores"); renderResumenCat("espumas","Espumas");
+  renderComparativa(); buildEvoSelect(); renderEvo();
+  document.getElementById("footer").textContent="Datos generados automáticamente · "+DATA.length+" registros · "+dates.length+" día(s) de histórico";
+}
+
+function renderEmpty(){
+  const msg=`<div class="empty"><b>Todavía no hay datos de precios</b>
+    Lanza el workflow en GitHub (<code>Actions → Run workflow</code>) para recoger los primeros precios.<br>
+    Recuerda configurar la URL del CSV en la variable <code>CSV_URL</code> de este archivo.</div>`;
+  ["view-resumen","view-selladores","view-espumas","view-comparativa","view-evolucion"]
+    .forEach(id=>document.getElementById(id).querySelector(".section").insertAdjacentHTML("afterend",msg));
+}
+
+function renderKPIs(){
+  const L=latestByProduct();
+  const sika=Object.entries(L).filter(([k,v])=>isSika(v.brand));
+  const comp=Object.entries(L).filter(([k,v])=>!isSika(v.brand));
+  const avg=arr=>arr.length?arr.reduce((a,b)=>a+b,0)/arr.length:0;
+  const sikaAvg=avg(sika.map(([k,v])=>v.price));
+  const compAvg=avg(comp.map(([k,v])=>v.price));
+  const diff=compAvg?((sikaAvg-compAvg)/compAvg*100):0;
+  const k=document.getElementById("kpis");
+  k.innerHTML=`
+    <div class="kpi"><div class="label">Productos Sika</div><div class="val">${sika.length}</div><div class="note">monitorizados</div></div>
+    <div class="kpi"><div class="label">Competidores</div><div class="val">${comp.length}</div><div class="note">en seguimiento</div></div>
+    <div class="kpi"><div class="label">Precio medio Sika</div><div class="val">${sikaAvg.toFixed(2)}€</div><div class="note">por referencia</div></div>
+    <div class="kpi"><div class="label">Sika vs competencia</div><div class="val" style="color:${diff>0?'var(--up)':'var(--down)'}">${diff>0?'+':''}${diff.toFixed(1)}%</div><div class="note">media de mercado</div></div>`;
+}
+
+function renderResumenCat(tab,cat){
+  const L=latestByProduct();
+  const rows=Object.entries(L).filter(([k,v])=>v.category===cat)
+    .sort((a,b)=>a[1].price-b[1].price);
+  const min=Math.min(...rows.map(([k,v])=>v.price));
+  let html='<table><tr><th>Producto</th><th>Precio</th></tr>';
+  rows.forEach(([k,v])=>{
+    html+=`<tr><td>${isSika(v.brand)?'<span class="tag sika">SIKA</span> ':''}${NAMES[k]||k}</td>
+      <td class="price ${v.price===min?'best':''}">${v.price.toFixed(2)}€</td></tr>`;
+  });
+  document.getElementById("resumen-"+tab).innerHTML=html+"</table>";
+}
+
+function renderCategoria(tab,cat){
+  const L=latestByProduct();
+  const rows=Object.entries(L).filter(([k,v])=>v.category===cat).sort((a,b)=>a[1].price-b[1].price);
+  const min=Math.min(...rows.map(([k,v])=>v.price));
+  // tabla
+  let html='<table><tr><th>Marca</th><th>Producto</th><th>Precio mín.</th><th>Tiendas</th></tr>';
+  rows.forEach(([k,v])=>{
+    html+=`<tr><td><span class="tag ${isSika(v.brand)?'sika':'comp'}">${v.brand}</span></td>
+      <td>${NAMES[k]||k}</td><td class="price ${v.price===min?'best':''}">${v.price.toFixed(2)}€</td>
+      <td style="color:var(--muted)">${v.n}</td></tr>`;
+  });
+  document.getElementById("tabla-"+tab).innerHTML=html+"</table>";
+  // chart
+  const labels=rows.map(([k])=>NAMES[k]||k);
+  const data=rows.map(([k,v])=>v.price);
+  const colors=rows.map(([k,v])=>isSika(v.brand)?"#FFD500":"#c9c6bd");
+  drawBar("chart-"+tab,labels,data,colors);
+}
+
+function drawBar(id,labels,data,colors){
+  if(charts[id])charts[id].destroy();
+  charts[id]=new Chart(document.getElementById(id),{
+    type:"bar",
+    data:{labels,datasets:[{data,backgroundColor:colors,borderRadius:5,
+      borderColor:"#111418",borderWidth:colors.map(c=>c==="#FFD500"?1.5:0)}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.raw.toFixed(2)+" €"}}},
+      scales:{y:{ticks:{callback:v=>v+" €"},grid:{color:"#eceae3"}},x:{grid:{display:false}}}}
+  });
+}
+
+function renderComparativa(){
+  const L=latestByProduct();
+  let html='<table><tr><th>Categoría</th><th>Sika (mín.)</th><th>Competencia (media)</th><th>Posición</th></tr>';
+  ["Selladores","Espumas"].forEach(cat=>{
+    const sika=Object.entries(L).filter(([k,v])=>v.category===cat&&isSika(v.brand)).map(([k,v])=>v.price);
+    const comp=Object.entries(L).filter(([k,v])=>v.category===cat&&!isSika(v.brand)).map(([k,v])=>v.price);
+    if(!sika.length||!comp.length)return;
+    const sMin=Math.min(...sika);
+    const cAvg=comp.reduce((a,b)=>a+b,0)/comp.length;
+    const diff=(sMin-cAvg)/cAvg*100;
+    html+=`<tr><td><b>${cat}</b></td><td class="price">${sMin.toFixed(2)}€</td>
+      <td class="price">${cAvg.toFixed(2)}€</td>
+      <td class="pos ${diff>0?'up':'down'}">${diff>0?'+':''}${diff.toFixed(1)}% ${diff>0?'más caro':'más barato'}</td></tr>`;
+  });
+  document.getElementById("tabla-comparativa").innerHTML=html+"</table>";
+}
+
+function buildEvoSelect(){
+  const sel=document.getElementById("evo-select");
+  const prods=[...new Set(DATA.map(r=>r.product))];
+  sel.innerHTML=prods.map(p=>`<option value="${p}">${NAMES[p]||p}</option>`).join("");
+}
+
+function renderEvo(){
+  const p=document.getElementById("evo-select").value;
+  const rows=DATA.filter(r=>r.product===p);
+  // precio medio por fecha
+  const byDate={};
+  rows.forEach(r=>{(byDate[r.date]=byDate[r.date]||[]).push(r.price)});
+  const dates=Object.keys(byDate).sort();
+  const data=dates.map(d=>{const a=byDate[d];return a.reduce((x,y)=>x+y,0)/a.length;});
+  if(charts["chart-evo"])charts["chart-evo"].destroy();
+  charts["chart-evo"]=new Chart(document.getElementById("chart-evo"),{
+    type:"line",
+    data:{labels:dates,datasets:[{label:NAMES[p]||p,data,borderColor:"#111418",
+      backgroundColor:"rgba(255,213,0,.25)",fill:true,tension:.25,pointBackgroundColor:"#FFD500",
+      pointBorderColor:"#111418",pointRadius:4}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.raw.toFixed(2)+" €"}}},
+      scales:{y:{ticks:{callback:v=>v+" €"},grid:{color:"#eceae3"}},x:{grid:{display:false}}}}
+  });
+}
+</script>
+</body>
+</html>
