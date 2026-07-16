@@ -1,49 +1,65 @@
 """
-database.py — Lectura/escritura del histórico de precios en data/prices.csv.
-El CSV se versiona dentro del propio repositorio (GitHub Actions hace commit).
+alerts.py — Detecta variaciones de precio significativas.
+
+Compara el precio de hoy de cada (tienda, producto) con la media de
+los días anteriores. Si la variación supera UMBRAL (10% por defecto),
+genera una alerta.
 """
 
-import os
-import csv
-from datetime import date
+from collections import defaultdict
+from statistics import mean
 
-DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data")
-CSV_PATH = os.path.join(DATA_DIR, "prices.csv")
-FIELDS = ["date", "store", "product", "brand", "category", "price"]
+UMBRAL = 0.10  # 10%
 
 
-def _ensure_file():
-    os.makedirs(DATA_DIR, exist_ok=True)
-    if not os.path.exists(CSV_PATH):
-        with open(CSV_PATH, "w", newline="", encoding="utf-8") as f:
-            csv.DictWriter(f, fieldnames=FIELDS).writeheader()
+def detectar_alertas(historico, hoy_rows, umbral=UMBRAL):
+    """
+    historico : lista de dicts de database.read_all() (incluye días previos)
+    hoy_rows  : lista de dicts del scraping de hoy (store, product, price...)
+    Devuelve una lista de alertas (dicts).
+    """
+    # Precios previos por (store, product), excluyendo las fechas de hoy
+    hoy_keys = {(r["store"], r["product"]) for r in hoy_rows}
+    fechas_hoy = {r.get("date") for r in hoy_rows if r.get("date")}
 
+    previos = defaultdict(list)
+    for r in historico:
+        if r.get("price") is None:
+            continue
+        if r.get("date") in fechas_hoy:
+            continue
+        key = (r.get("store"), r.get("product"))
+        if key in hoy_keys:
+            previos[key].append(r["price"])
 
-def append_rows(rows, day=None):
-    """Añade las filas del día al CSV."""
-    _ensure_file()
-    day = day or date.today().isoformat()
-    with open(CSV_PATH, "a", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=FIELDS)
-        for r in rows:
-            writer.writerow({
-                "date": day,
+    alertas = []
+    for r in hoy_rows:
+        key = (r["store"], r["product"])
+        precios_previos = previos.get(key)
+        if not precios_previos:
+            continue  # sin histórico todavía para esta tienda/producto
+
+        media = mean(precios_previos)
+        if media == 0:
+            continue
+
+        variacion = (r["price"] - media) / media
+        if abs(variacion) >= umbral:
+            alertas.append({
                 "store": r["store"],
                 "product": r["product"],
-                "brand": r["brand"],
-                "category": r["category"],
-                "price": f"{r['price']:.2f}",
+                "brand": r.get("brand"),
+                "category": r.get("category"),
+                "precio_hoy": r["price"],
+                "media_previa": round(media, 2),
+                "variacion_pct": round(variacion * 100, 1),
+                "tipo": "subida" if variacion > 0 else "bajada",
             })
 
+    return alertas
 
-def read_all():
-    """Devuelve todas las filas históricas como lista de dicts."""
-    _ensure_file()
-    with open(CSV_PATH, newline="", encoding="utf-8") as f:
-        rows = list(csv.DictReader(f))
-    for r in rows:
-        try:
-            r["price"] = float(r["price"])
-        except (TypeError, ValueError):
-            r["price"] = None
-    return rows
+
+if __name__ == "__main__":
+    import database
+    historico = database.read_all()
+    print(f"{len(historico)} registros históricos cargados en total.")
