@@ -459,12 +459,12 @@ const PCOLORS = {
 /* Categorías */
 const CATS = {
   Selladores:{sika:['SIKAFLEX_11FC'],comp:['BOSTIK_P795','BOSTIK_P360','SOUDAL_SOUDASEAL','MAPEI_PU45'],color:'#FCC500',icon:'🧴'},
-  Espumas:{sika:['SIKABOOM_180','SIKABOOM_580','SIKABOOM_151','SIKABOOM_582','SIKABOOM_584','SIKABOOM_420_FIRE'],
-           comp:['QUILOSA_ORBAFOAM_CAN','QUILOSA_ORBAFOAM_PIS','QUILOSA_ORBAFOAM_TEJ','QUILOSA_FIRESTOP','SOUDAL_SOUDAFOAM_CAN','SOUDAL_SOUDAFOAM_PIS','SOUDAL_SOUDAFOAM_FR','PENOSIL_PISTOLA'],
+  Espumas:{sika:['SIKABOOM_151','SIKABOOM_582','SIKABOOM_584','SIKABOOM_420_FIRE'],
+           comp:['QUILOSA_ORBAFOAM_TEJ','QUILOSA_FIRESTOP','SOUDAL_SOUDAFOAM_FR'],
            color:'#0B8F83',icon:'🧯'},
 };
-const SIKA_P=['SIKAFLEX_11FC','SIKABOOM_180','SIKABOOM_580','SIKABOOM_151','SIKABOOM_582','SIKABOOM_584','SIKABOOM_420_FIRE'];
-const COMP_P=['BOSTIK_P795','BOSTIK_P360','SOUDAL_SOUDASEAL','MAPEI_PU45','QUILOSA_ORBAFOAM_CAN','QUILOSA_ORBAFOAM_PIS','QUILOSA_ORBAFOAM_TEJ','QUILOSA_FIRESTOP','SOUDAL_SOUDAFOAM_CAN','SOUDAL_SOUDAFOAM_PIS','SOUDAL_SOUDAFOAM_FR','PENOSIL_PISTOLA'];
+const SIKA_P=['SIKAFLEX_11FC','SIKABOOM_151','SIKABOOM_582','SIKABOOM_584','SIKABOOM_420_FIRE'];
+const COMP_P=['BOSTIK_P795','BOSTIK_P360','SOUDAL_SOUDASEAL','MAPEI_PU45','QUILOSA_ORBAFOAM_TEJ','QUILOSA_FIRESTOP','SOUDAL_SOUDAFOAM_FR'];
 const ALL_P=[...SIKA_P,...COMP_P];
 
 /* URL de cada tienda, tomada directamente de scraper.py (la CSV no guarda URL) */
@@ -515,7 +515,7 @@ async function loadData(){
     const r=await fetch(`${CSV_URL}?t=${Date.now()}`);
     if(!r.ok)throw new Error(`HTTP ${r.status}`);
     const txt=await r.text();
-    allData=parseCSV(txt);
+    allData=parseCSV(txt).filter(r=>ALL_P.includes(r.product));
     if(!allData.length)throw new Error('EMPTY');
     renderDashboard();
   }catch(e){
