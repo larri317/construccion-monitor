@@ -135,12 +135,12 @@ STORES = [
         "selectors": [".product-info-price .price", "[itemprop='price']", ".price"],
     },
 
-    # --- Sika Boom 580 (pistola) ---  OK URL nueva (PrestaShop)
+    # --- Sika Boom 580 (pistola) ---  OK URL nueva VERIFICADA (paramireforma, PrestaShop)
     {
-        "store": "CriadoHermanos SikaBoom580",
-        "url": "https://www.criadohermanos.com/index.php?id_product=30190&rewrite=espuma-de-poliuretano-sika-boom-580-750-cm3&controller=product",
+        "store": "ParaMiReforma SikaBoom580",
+        "url": "https://paramireforma.com/espuma-poliuretano-sika-boom-580-fixfill-750cm3-p-3421.html",
         "product": "SIKABOOM_580", "brand": "Sika", "category": "Espumas",
-        "selectors": ["[itemprop='price']", ".current-price .price", "#our_price_display", ".price"],
+        "selectors": [".current-price .price", "[itemprop='price']", ".price"],
     },
 
     # --- Sika Boom 151 Multiposition ---  OK URL nueva VERIFICADA (WooCommerce)
@@ -159,20 +159,20 @@ STORES = [
         "selectors": [".product-info-price .price", "[itemprop='price']", ".price"],
     },
 
-    # --- Sika Boom 584 (tejas) ---  OK URL nueva (Shopify, precio en JSON-LD)
+    # --- Sika Boom 584 (tejas) ---  OK URL nueva VERIFICADA (paramireforma, 8,05 €)
     {
-        "store": "Brikum SikaBoom584",
-        "url": "https://www.brikum.com/products/cartucho-espuma-para-pegado-de-tejas-sika-boom-584-roof-tile-750ml-sika",
+        "store": "ParaMiReforma SikaBoom584",
+        "url": "https://paramireforma.com/espuma-poliuretano-sika-boom-584-roo-tejas-pistola-3432.html",
         "product": "SIKABOOM_584", "brand": "Sika", "category": "Espumas",
-        "selectors": [".price__regular .price-item", "[itemprop='price']", ".price"],
+        "selectors": [".current-price .price", "[itemprop='price']", ".price"],
     },
 
-    # --- Sika Boom 420 Fire (ignífuga) ---  OK URL nueva (PrestaShop)
+    # --- Sika Boom 420 Fire (ignífuga) ---  candidato (PrestaShop) — lo confirmará el informe
     {
-        "store": "SuministrosGamesa SikaBoom420Fire",
-        "url": "https://www.suministrosgamesa.com/mis-productos/1132863-sikaboom-420-fire-750cc-7612655073556.html",
+        "store": "PierreEtSol SikaBoom420Fire",
+        "url": "https://www.pierreetsol.com/vente/es/espumas-de-poliuretano-sika/5910-sika-boom-420-fire-espuma-de-poliuretano-expandible-resistente-al-fuego-sika.html",
         "product": "SIKABOOM_420_FIRE", "brand": "Sika", "category": "Espumas",
-        "selectors": ["[itemprop='price']", ".current-price .price", "#our_price_display", ".price"],
+        "selectors": [".current-price .price", "[itemprop='price']", ".price"],
     },
 
     # --- Competidores ESPUMAS ---
@@ -285,6 +285,13 @@ def _extract_price(entry, soup, html):
         if _in_range(product, p):
             return p, "meta-itemprop"
 
+    # b2) Open Graph de producto <meta property="product:price:amount"> (PrestaShop y otros)
+    for prop in ("product:price:amount", "og:price:amount"):
+        for meta in soup.find_all("meta", attrs={"property": prop}):
+            p = _parse_price(meta.get("content"))
+            if _in_range(product, p):
+                return p, "meta-og-price"
+
     # c) selectores CSS de la entrada
     for sel in entry.get("selectors", []):
         for node in soup.select(sel):
@@ -301,21 +308,27 @@ def _extract_price(entry, soup, html):
     return None, "sin-precio"
 
 
-def scrape_store(entry, timeout=20):
-    """Devuelve (precio|None, estado) para una tienda."""
-    try:
-        resp = requests.get(entry["url"], headers=HEADERS, timeout=timeout)
-    except Exception as exc:
-        return None, f"error-red ({type(exc).__name__})"
+def scrape_store(entry, timeout=30, retries=2):
+    """Devuelve (precio|None, estado) para una tienda. Reintenta si hay timeout/red."""
+    last_err = "error-red"
+    for intento in range(retries + 1):
+        try:
+            resp = requests.get(entry["url"], headers=HEADERS, timeout=timeout)
+        except Exception as exc:
+            last_err = f"error-red ({type(exc).__name__})"
+            time.sleep(2 * (intento + 1))   # espera creciente antes de reintentar
+            continue
 
-    if resp.status_code != 200:
-        return None, f"HTTP {resp.status_code}"
+        if resp.status_code != 200:
+            return None, f"HTTP {resp.status_code}"
 
-    soup = BeautifulSoup(resp.text, "html.parser")
-    price, method = _extract_price(entry, soup, resp.text)
-    if price is not None:
-        return price, f"OK ({method})"
-    return None, "sin precio en rango"
+        soup = BeautifulSoup(resp.text, "html.parser")
+        price, method = _extract_price(entry, soup, resp.text)
+        if price is not None:
+            return price, f"OK ({method})"
+        return None, "sin precio en rango"
+
+    return None, last_err
 
 
 def scrape_all():
