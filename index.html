@@ -207,6 +207,18 @@ tbody tr:hover td{background:var(--s7);}
 .view.active{display:block;}
 @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
 
+/* ── POSICIONAMIENTO (matriz Sika vs rival) ── */
+.pos-price{font-family:var(--font-head);font-weight:800;font-size:15px;color:var(--s1);}
+.pos-delta{font-family:var(--font-mono);font-weight:600;font-size:14px;}
+.pos-badge{font-size:11px;font-weight:700;padding:4px 11px;border-radius:20px;white-space:nowrap;}
+.pos-win{background:var(--green-lt);color:var(--green);}
+.pos-lose{background:var(--red-lt);color:var(--red);}
+.pos-mid{background:#FEF3C7;color:#92700A;}
+[data-theme="dark"] .pos-mid{background:#2A2200;color:#D9B84A;}
+.pos-detail td{padding-top:0!important;border-top:none!important;}
+.pos-rivchip{display:inline-block;font-size:11px;color:var(--s3);background:var(--s7);border:1px solid var(--border);border-radius:6px;padding:3px 9px;margin:2px 6px 2px 0;}
+.pos-trend{font-family:var(--font-mono);font-size:11px;font-weight:600;}
+
 /* ── RESPONSIVE ── */
 @media(max-width:1100px){.kpi-strip{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:900px){
@@ -245,8 +257,9 @@ tbody tr:hover td{background:var(--s7);}
     </div>
   </div>
   <nav class="topbar-nav">
-    <div class="nav-item active" onclick="showView('resumen')" id="nav-resumen"><div class="ni-dot" style="background:var(--y)"></div>Resumen</div>
-    <div class="nav-item" onclick="showView('comparativa')" id="nav-comparativa"><div class="ni-dot" style="background:#555"></div>Comparativa</div>
+    <div class="nav-item active" onclick="showView('posicion')" id="nav-posicion"><div class="ni-dot" style="background:var(--y)"></div>🎯 Posicionamiento</div>
+    <div class="nav-item" onclick="showView('resumen')" id="nav-resumen"><div class="ni-dot" style="background:#555"></div>Resumen</div>
+    <div class="nav-item" onclick="showView('comparativa')" id="nav-comparativa"><div class="ni-dot" style="background:#777"></div>Comparativa</div>
     <div class="nav-item" onclick="showView('evolucion')" id="nav-evolucion"><div class="ni-dot" style="background:#888"></div>Evolución</div>
     <div class="nav-sep"></div>
     <div class="nav-item" onclick="showView('selladores')" id="nav-selladores"><div class="ni-dot" style="background:var(--cat-sel)"></div>🧴 Selladores</div>
@@ -268,8 +281,32 @@ tbody tr:hover td{background:var(--s7);}
   <div class="content" id="appContent" style="display:none">
     <div id="alertsContainer"></div>
 
+    <!-- ═══ POSICIONAMIENTO ═══ -->
+    <div class="view active" id="view-posicion">
+      <div class="kpi-strip" id="posKpiGrid"></div>
+      <div class="card" style="border-top:3px solid var(--y)">
+        <div class="card-header">
+          <span class="card-title">🎯 Sika vs competencia directa — hoy</span>
+          <div class="card-actions">
+            <div class="search-wrap">
+              <span class="search-icon">🔍</span>
+              <input type="text" id="posSearch" placeholder="Filtrar producto..." oninput="filterTables(this.value)">
+            </div>
+            <span class="card-meta" id="posSummary">—</span>
+          </div>
+        </div>
+        <div class="tbl-wrap">
+          <table><thead><tr>
+            <th>Producto Sika</th><th>Mi precio</th><th>Rival + barato</th><th>Δ vs + barato</th><th>Media rivales</th><th>Estado</th><th>Tend.</th>
+          </tr></thead>
+          <tbody id="posMatrixBody"></tbody></table>
+        </div>
+        <div style="font-size:11px;color:var(--s4);margin-top:12px">Verde = Sika más barato que el rival · Rojo = Sika más caro. La fila inferior de cada producto detalla cada competidor. Comparación por precio absoluto.</div>
+      </div>
+    </div>
+
     <!-- ═══ RESUMEN ═══ -->
-    <div class="view active" id="view-resumen">
+    <div class="view" id="view-resumen">
       <div class="kpi-strip" id="kpiGrid"></div>
       <div class="grid-cat" id="catCards"></div>
       <div class="card">
@@ -468,6 +505,18 @@ const SIKA_P=[...CATS.Selladores.sika,...CATS.Espumas.sika];
 const COMP_P=[...CATS.Selladores.comp,...CATS.Espumas.comp];
 const ALL_P=[...SIKA_P,...COMP_P];
 
+/* Rival directo de cada producto Sika (solo competidores que se rastrean).
+   Edita aquí si quieres cambiar contra quién se compara cada producto. */
+const RIVALS = {
+  SIKAFLEX_11FC:     ['BOSTIK_P795','BOSTIK_P360','SOUDAL_SOUDASEAL','MAPEI_PU45'],
+  SIKABOOM_180:      ['QUILOSA_ORBAFOAM_CAN'],
+  SIKABOOM_580:      ['QUILOSA_ORBAFOAM_PIS','SOUDAL_SOUDAFOAM_PIS','PENOSIL_PISTOLA'],
+  SIKABOOM_151:      ['QUILOSA_ORBAFOAM_PIS','SOUDAL_SOUDAFOAM_PIS','PENOSIL_PISTOLA'],
+  SIKABOOM_582:      ['QUILOSA_ORBAFOAM_PIS','SOUDAL_SOUDAFOAM_PIS'],
+  SIKABOOM_584:      [],   // tejas: sin rival rastreado por ahora
+  SIKABOOM_420_FIRE: ['SOUDAL_SOUDAFOAM_FR'],
+};
+
 /* URL de cada tienda, tomada directamente de scraper.py (la CSV no guarda URL) */
 const STORE_URLS = {
   "Campollano Sikaflex11FC":"https://www.ferreteriacampollano.com/sellador-poliuretano-sikaflex-11fc-blanco-300ml-sika.html",
@@ -490,7 +539,7 @@ const STORE_URLS = {
   "Ferrokey Penosil Pistola":"https://www.ferrokey.eu/espuma-poliuretano-ultra-rapida-123-pistola-870-ml-penosil",
 };
 
-const PAGE_TITLES={resumen:'Resumen Global',comparativa:'Comparativa de Mercado',evolucion:'Evolución de Precios',selladores:'Selladores PU',espumas:'Espumas PU'};
+const PAGE_TITLES={posicion:'Posicionamiento · Sika vs Competencia',resumen:'Resumen Global',comparativa:'Comparativa de Mercado',evolucion:'Evolución de Precios',selladores:'Selladores PU',espumas:'Espumas PU'};
 
 let allData=[],charts={},evoFilter='all';
 const avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null;
@@ -563,7 +612,7 @@ function renderDashboard(){
 }
 
 function renderAll(){
-  renderAlerts();renderKPIs();renderCatCards();renderRanking();
+  renderAlerts();renderKPIs();renderPosMatrix();renderCatCards();renderRanking();
   Object.keys(CATS).forEach(cat=>renderCatSection(cat));
   renderCompareBar();renderVsGlobal();renderMarketPos();renderAllLine();renderEvoCharts();
 }
@@ -583,17 +632,30 @@ function renderAlerts(){
 
 function renderKPIs(){
   const today=todayRows();
+  const priceOf=p=>{const pr=today.filter(r=>r.product===p).map(r=>r.price);return pr.length?avg(pr):null;};
   const sA=avg(today.filter(r=>SIKA_P.includes(r.product)).map(r=>r.price));
   const cA=avg(today.filter(r=>COMP_P.includes(r.product)).map(r=>r.price));
-  const diff=sA&&cA?((sA-cA)/cA*100):null;
+
+  /* Índice correcto: para cada producto Sika, Δ% frente a la MEDIA de SUS rivales; luego media de esos Δ%. */
+  let deltas=[], winCount=0, cmp=0;
+  SIKA_P.forEach(s=>{
+    if(!RIVALS[s]||!RIVALS[s].length)return;
+    const sP=priceOf(s);if(sP==null)return;
+    const rp=RIVALS[s].map(r=>priceOf(r)).filter(x=>x!=null);
+    if(!rp.length)return;
+    cmp++;
+    deltas.push((sP-avg(rp))/avg(rp)*100);
+    if(sP<=Math.min(...rp))winCount++;
+  });
+  const diff=deltas.length?avg(deltas):null;
   const dates=[...new Set(allData.map(r=>r.date))].sort();
   const items=[
+    {label:'Sika vs sus rivales',value:diff!=null?`${diff>=0?'+':''}${diff.toFixed(1)}%`:'—',sub:diff!=null?(diff>0?'de media, Sika más caro':'de media, Sika más barato'):'Sin datos',accent:diff!=null?(diff>0?'#D92B2B':'#0D9148'):'#999',badge:diff!=null?(diff>0?{t:`▲ ${diff.toFixed(1)}%`,c:'badge-up'}:{t:`▼ ${Math.abs(diff).toFixed(1)}%`,c:'badge-dn'}):null},
+    {label:'Productos donde gano',value:cmp?`${winCount}/${cmp}`:'—',sub:'más barato que toda su competencia',accent:'#0D9148',badge:null},
     {label:'Media Sika hoy',value:sA?`${sA.toFixed(2)}€`:'—',sub:`${today.filter(r=>SIKA_P.includes(r.product)).length} registros`,accent:'#FCC500',badge:null},
-    {label:'Media Competencia',value:cA?`${cA.toFixed(2)}€`:'—',sub:`${today.filter(r=>COMP_P.includes(r.product)).length} registros`,accent:'#0B8F83',badge:null},
-    {label:'Sika vs Mercado',value:diff!=null?`${diff>=0?'+':''}${diff.toFixed(1)}%`:'—',sub:diff!=null?(diff>0?'Sika más caro':'Sika más barato'):'Sin datos',accent:diff!=null?(diff>0?'#D92B2B':'#0D9148'):'#999',badge:diff!=null?(diff>0?{t:`▲ ${diff.toFixed(1)}%`,c:'badge-up'}:{t:`▼ ${Math.abs(diff).toFixed(1)}%`,c:'badge-dn'}):null},
     {label:'Días de histórico',value:dates.length,sub:`${allData.length} reg. · ${[...new Set(allData.map(r=>r.store))].length} tiendas`,accent:'#0A0A0A',badge:null},
   ];
-  document.getElementById('kpiGrid').innerHTML=items.map(k=>`
+  const html=items.map(k=>`
     <div class="kpi">
       <div class="kpi-accent" style="background:${k.accent}"></div>
       <div class="kpi-top">
@@ -603,6 +665,7 @@ function renderKPIs(){
       <div class="kpi-val">${k.value}</div>
       <div class="kpi-sub">${k.sub}</div>
     </div>`).join('');
+  ['kpiGrid','posKpiGrid'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=html;});
 }
 
 function renderCatCards(){
@@ -760,6 +823,69 @@ function renderMarketPos(){
     </div>`).join('');
 }
 
+function renderPosMatrix(){
+  const today=todayRows();
+  const priceOf=p=>{const pr=today.filter(r=>r.product===p).map(r=>r.price);return pr.length?avg(pr):null;};
+  const el=document.getElementById('posMatrixBody');if(!el)return;
+  let wins=0,loses=0,cmp=0;
+
+  const rows=SIKA_P.filter(s=>RIVALS[s]&&RIVALS[s].length).map(s=>{
+    const sP=priceOf(s);
+    const rivals=RIVALS[s].map(r=>({r,price:priceOf(r)})).filter(x=>x.price!=null);
+    return {s,sP,rivals};
+  });
+
+  const html=rows.map(({s,sP,rivals})=>{
+    if(sP==null)
+      return `<tr><td>${ptag(s)}</td><td colspan="6" style="color:var(--s4)">Sin precio de Sika hoy</td></tr>`;
+    if(!rivals.length)
+      return `<tr><td>${ptag(s)}</td><td><span class="pos-price">${sP.toFixed(2)} €</span></td><td colspan="5" style="color:var(--s4)">Sin datos de rival hoy</td></tr>`;
+
+    cmp++;
+    const prices=rivals.map(x=>x.price);
+    const minR=Math.min(...prices),maxR=Math.max(...prices),avgR=avg(prices);
+    const cheapest=rivals.find(x=>x.price===minR);
+    const dCheap=(sP-minR)/minR*100;
+    const dc=dCheap<0?'var(--green)':dCheap>0?'var(--red)':'var(--s3)';
+
+    let status,scls;
+    if(sP<=minR){status='Más barato que todos';scls='pos-win';wins++;}
+    else if(sP>=maxR){status='Más caro que todos';scls='pos-lose';loses++;}
+    else{status='En rango';scls='pos-mid';}
+
+    // Tendencia del hueco vs media 7 días
+    const sH=hist7(s),rH=avg(RIVALS[s].map(r=>hist7(r)).filter(x=>x));
+    let trend='<span class="pos-trend" style="color:var(--s4)">—</span>';
+    if(sH&&rH){
+      const gapNow=(sP-avgR)/avgR*100, gapPrev=(sH-rH)/rH*100, d=gapNow-gapPrev;
+      trend = Math.abs(d)<0.5
+        ? '<span class="pos-trend" style="color:var(--s4)">▬ igual</span>'
+        : d<0 ? '<span class="pos-trend" style="color:var(--green)">▼ mejora</span>'
+              : '<span class="pos-trend" style="color:var(--red)">▲ empeora</span>';
+    }
+
+    const rivalList=rivals.slice().sort((a,b)=>a.price-b.price).map(x=>{
+      const d=(sP-x.price)/x.price*100, c=d<0?'var(--green)':d>0?'var(--red)':'var(--s3)';
+      return `<span class="pos-rivchip">${PNAMES[x.r]}: <b>${x.price.toFixed(2)}€</b> <span style="color:${c}">(${d>=0?'+':''}${d.toFixed(0)}%)</span></span>`;
+    }).join('');
+
+    return `<tr>
+      <td>${ptag(s)}</td>
+      <td><span class="pos-price">${sP.toFixed(2)} €</span></td>
+      <td><b>${minR.toFixed(2)} €</b><div style="font-size:10px;color:var(--s4)">${PNAMES[cheapest.r]}</div></td>
+      <td><span class="pos-delta" style="color:${dc}">${dCheap>=0?'+':''}${dCheap.toFixed(1)}%</span></td>
+      <td>${avgR.toFixed(2)} €</td>
+      <td><span class="pos-badge ${scls}">${status}</span></td>
+      <td style="text-align:center">${trend}</td>
+    </tr>
+    <tr class="pos-detail"><td></td><td colspan="6">${rivalList}</td></tr>`;
+  }).join('');
+
+  el.innerHTML=html||'<tr><td colspan="7" style="text-align:center;color:var(--s4)">Sin datos hoy</td></tr>';
+  const sum=document.getElementById('posSummary');
+  if(sum)sum.textContent=`${wins} gano · ${loses} pierdo · ${cmp} comparados`;
+}
+
 function renderAllLine(){
   const dates=[...new Set(allData.map(r=>r.date))].sort();
   destroy('allLine');
@@ -805,7 +931,7 @@ function setEvo(p){
   renderEvoCharts();
 }
 
-const VIEWS=['resumen','comparativa','evolucion','selladores','espumas'];
+const VIEWS=['posicion','resumen','comparativa','evolucion','selladores','espumas'];
 function showView(v){
   document.getElementById('pageTitle').textContent=PAGE_TITLES[v]||v;
   VIEWS.forEach(x=>{
@@ -814,6 +940,7 @@ function showView(v){
     const nav=document.getElementById(`nav-${x}`);
     if(nav)nav.classList.toggle('active',x===v);
   });
+  if(v==='posicion'){renderPosMatrix();}
   if(v==='comparativa'){renderCompareBar();renderAllLine();}
   if(v==='evolucion'){renderEvoCharts();}
   if(['selladores','espumas'].includes(v)){renderCatSection(v.charAt(0).toUpperCase()+v.slice(1));}
@@ -833,8 +960,8 @@ function toggleTheme(){
   document.documentElement.setAttribute('data-theme',cur==='dark'?'':'dark');
 }
 
-/* Initialize views (hide all except resumen) */
-VIEWS.forEach(v=>{const el=document.getElementById(`view-${v}`);if(el&&v!=='resumen')el.style.display='none';});
+/* Initialize views (hide all except posicion) */
+VIEWS.forEach(v=>{const el=document.getElementById(`view-${v}`);if(el&&v!=='posicion')el.style.display='none';});
 
 loadData();
 </script>
