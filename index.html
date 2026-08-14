@@ -459,12 +459,13 @@ const PCOLORS = {
 /* Categorías */
 const CATS = {
   Selladores:{sika:['SIKAFLEX_11FC'],comp:['BOSTIK_P795','BOSTIK_P360','SOUDAL_SOUDASEAL','MAPEI_PU45'],color:'#FCC500',icon:'🧴'},
-  Espumas:{sika:['SIKABOOM_151','SIKABOOM_420_FIRE'],
-           comp:['QUILOSA_FIRESTOP','SOUDAL_SOUDAFOAM_FR'],
+  Espumas:{sika:['SIKABOOM_180','SIKABOOM_580','SIKABOOM_151','SIKABOOM_582','SIKABOOM_584','SIKABOOM_420_FIRE'],
+           comp:['QUILOSA_ORBAFOAM_CAN','QUILOSA_ORBAFOAM_PIS','SOUDAL_SOUDAFOAM_FR','SOUDAL_SOUDAFOAM_PIS','PENOSIL_PISTOLA'],
            color:'#0B8F83',icon:'🧯'},
 };
-const SIKA_P=['SIKAFLEX_11FC','SIKABOOM_151','SIKABOOM_420_FIRE'];
-const COMP_P=['BOSTIK_P795','BOSTIK_P360','SOUDAL_SOUDASEAL','MAPEI_PU45','QUILOSA_FIRESTOP','SOUDAL_SOUDAFOAM_FR'];
+/* Listas derivadas de CATS: comparativa, ranking y pestañas usan SIEMPRE los mismos productos */
+const SIKA_P=[...CATS.Selladores.sika,...CATS.Espumas.sika];
+const COMP_P=[...CATS.Selladores.comp,...CATS.Espumas.comp];
 const ALL_P=[...SIKA_P,...COMP_P];
 
 /* URL de cada tienda, tomada directamente de scraper.py (la CSV no guarda URL) */
