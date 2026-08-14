@@ -1,21 +1,29 @@
 """
 scraper.py — Recolector de precios para el monitor de construcción.
 
-Cada entrada de STORES define:
-  - store      : nombre identificativo (tienda + producto)
-  - url        : URL de la página del producto
-  - product    : clave del producto (debe existir en PRICE_RANGES)
-  - brand      : marca (Sika / Bostik / Soudal / Quilosa / Penosil / Mapei...)
-  - category   : "Selladores" o "Espumas"
-  - selectors  : lista de selectores CSS para encontrar el precio
-                 (se prueban en orden hasta que uno funcione)
+Novedades de esta versión
+-------------------------
+1) EXTRACCIÓN DE PRECIO MÁS ROBUSTA. Antes solo se miraban unos selectores CSS
+   concretos; si la tienda cambiaba el HTML, el precio se perdía. Ahora se prueba,
+   en este orden:
+       a) JSON-LD  (<script type="application/ld+json"> → offers.price)  ← lo más fiable
+       b) Microdatos (<meta itemprop="price">)
+       c) Selectores CSS de la propia entrada
+       d) Último recurso: el menor precio dentro de rango en toda la página
+   La mayoría de tiendas (WooCommerce, PrestaShop, Shopify) publican el precio en
+   JSON-LD, así que esto sobrevive a los cambios de maquetación.
 
-PRICE_RANGES define el rango de precio válido (€) por producto.
-Si el scraper encuentra un número fuera de ese rango, lo descarta
-(evita coger precios de envío, descuentos o de otros productos de la página).
+2) INFORME DE DIAGNÓSTICO. Al terminar, imprime una tabla con el estado de CADA
+   tienda (OK / HTTP 404 / bloqueado / sin precio). Así, si una URL se cae, lo ves
+   al instante en el log de GitHub Actions en vez de que el producto desaparezca
+   en silencio de la web.
+
+Formato de salida (idéntico al anterior, no rompe main.py/database.py):
+   scrape_all() -> lista de dicts {store, product, brand, category, price}
 """
 
 import re
+import json
 import time
 import random
 import requests
@@ -26,27 +34,28 @@ HEADERS = {
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
         "(KHTML, like Gecko) Chrome/124.0 Safari/537.36"
     ),
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
     "Accept-Language": "es-ES,es;q=0.9",
 }
 
 # ---------------------------------------------------------------------------
-# Rango de precio válido (€) por producto. Ajusta si conoces el precio real.
-# Si el número extraído cae fuera del rango, se descarta.
+# Rango de precio válido (€) por producto. Si el número extraído cae fuera del
+# rango, se descarta (evita coger precios de envío, packs, IVA suelto, etc.).
 # ---------------------------------------------------------------------------
 PRICE_RANGES = {
-    # --- Selladores (cartucho 300 ml) ---
+    # --- Selladores (cartucho ~300 ml) ---
     "SIKAFLEX_11FC":        (5, 35),
-    "BOSTIK_P795":          (5, 30),
-    "BOSTIK_P360":          (5, 25),
-    "SOUDAL_SOUDASEAL":     (5, 25),
-    "MAPEI_PU45":           (5, 25),
+    "BOSTIK_P795":          (4, 30),
+    "BOSTIK_P360":          (4, 25),
+    "SOUDAL_SOUDASEAL":     (4, 25),
+    "MAPEI_PU45":           (4, 25),
     # --- Espumas (750 ml) ---
     "SIKABOOM_180":         (4, 20),
     "SIKABOOM_580":         (5, 22),
     "SIKABOOM_151":         (5, 22),
-    "SIKABOOM_582":         (4, 20),
-    "SIKABOOM_584":         (4, 20),
-    "SIKABOOM_420_FIRE":    (8, 30),
+    "SIKABOOM_582":         (4, 22),
+    "SIKABOOM_584":         (4, 22),
+    "SIKABOOM_420_FIRE":    (8, 32),
     "QUILOSA_ORBAFOAM_CAN": (4, 18),
     "QUILOSA_ORBAFOAM_PIS": (5, 20),
     "QUILOSA_ORBAFOAM_TEJ": (4, 18),
@@ -58,15 +67,14 @@ PRICE_RANGES = {
 }
 
 # ---------------------------------------------------------------------------
-# Tiendas a rastrear. Añade/edita libremente.
-# IMPORTANTE: cada URL debe ser la página de UN producto concreto.
-# Los selectors son los habituales; si una tienda da precios raros,
-# inspecciona el precio en Chrome (clic derecho → Inspeccionar) y
-# añade el selector exacto al principio de la lista de esa entrada.
+# Tiendas a rastrear.
+#   OK  = URL refrescada/verificada en esta revisión (agosto 2026)
+#   REV = URL antigua PENDIENTE de confirmar (probablemente 404). El informe de
+#         diagnóstico la marcará; pásame la ficha correcta y la actualizo.
 # ---------------------------------------------------------------------------
 STORES = [
     # ===================== SELLADORES =====================
-    # --- Sika Sikaflex 11 FC Purform ---
+    # --- Sika Sikaflex 11 FC Purform (estas 3 funcionan) ---
     {
         "store": "Campollano Sikaflex11FC",
         "url": "https://www.ferreteriacampollano.com/sellador-poliuretano-sikaflex-11fc-blanco-300ml-sika.html",
@@ -86,15 +94,15 @@ STORES = [
         "selectors": ["[itemprop='price']", ".product-price", ".price"],
     },
 
-    # --- Bostik P795 Poliuretano Premium ---
+    # --- Bostik P795 Seal'N'Flex Premium ---  OK URL nueva (PrestaShop)
     {
-        "store": "Campollano BostikP795",
-        "url": "https://www.ferreteriacampollano.com/sellador-poliuretano-bostik-p795-premium.html",
+        "store": "Diperplac BostikP795",
+        "url": "https://diperplac.com/tienda/colas-masillas-y-siliconas/3850-bostik-masilla-poliuretano-p795-flex-300ml-blanca.html",
         "product": "BOSTIK_P795", "brand": "Bostik", "category": "Selladores",
-        "selectors": ["[itemprop='price']", ".product-price .price", ".price"],
+        "selectors": ["[itemprop='price']", ".current-price .price", "#our_price_display", ".price"],
     },
 
-    # --- Bostik P360 / Seal N Flex ---
+    # --- Bostik P360 / Seal N Flex ---  REV URL antigua a confirmar
     {
         "store": "Bricolemar BostikP360",
         "url": "https://www.bricolemar.com/adhesivos/bostik-seal-flex-p360.html",
@@ -102,7 +110,7 @@ STORES = [
         "selectors": ["#our_price_display", "[itemprop='price']", ".current-price .price", ".price"],
     },
 
-    # --- Soudal Soudaseal / Soudaflex ---
+    # --- Soudal Soudaseal 240 FC ---  REV URL antigua a confirmar
     {
         "store": "Bricolemar Soudaseal",
         "url": "https://www.bricolemar.com/adhesivos/soudal-soudaseal-240-fc.html",
@@ -110,7 +118,7 @@ STORES = [
         "selectors": ["#our_price_display", "[itemprop='price']", ".current-price .price", ".price"],
     },
 
-    # --- Mapei Mapeflex PU45 ---
+    # --- Mapei Mapeflex PU45 ---  REV URL antigua a confirmar
     {
         "store": "Bricolemar MapeiPU45",
         "url": "https://www.bricolemar.com/adhesivos/mapei-mapeflex-pu45.html",
@@ -119,7 +127,7 @@ STORES = [
     },
 
     # ===================== ESPUMAS =====================
-    # --- Sika Boom 180 (cánula) ---
+    # --- Sika Boom 180 (cánula) --- (funciona)
     {
         "store": "Ferrokey SikaBoom180",
         "url": "https://www.ferrokey.eu/espuma-poliuretano-sikaboom-180-canula-750-ml",
@@ -127,23 +135,23 @@ STORES = [
         "selectors": [".product-info-price .price", "[itemprop='price']", ".price"],
     },
 
-    # --- Sika Boom 580 (pistola) ---
+    # --- Sika Boom 580 (pistola) ---  OK URL nueva (PrestaShop)
     {
-        "store": "Ferrokey SikaBoom580",
-        "url": "https://www.ferrokey.eu/espuma-poliuretano-sikaboom-580-pistola-750-ml",
+        "store": "CriadoHermanos SikaBoom580",
+        "url": "https://www.criadohermanos.com/index.php?id_product=30190&rewrite=espuma-de-poliuretano-sika-boom-580-750-cm3&controller=product",
         "product": "SIKABOOM_580", "brand": "Sika", "category": "Espumas",
-        "selectors": [".product-info-price .price", "[itemprop='price']", ".price"],
+        "selectors": ["[itemprop='price']", ".current-price .price", "#our_price_display", ".price"],
     },
 
-    # --- Sika Boom 151 Multiposition ---
+    # --- Sika Boom 151 Multiposition ---  OK URL nueva VERIFICADA (WooCommerce)
     {
-        "store": "Ferrokey SikaBoom151",
-        "url": "https://www.ferrokey.eu/espuma-poliuretano-sikaboom-151-multiposition-750-ml",
+        "store": "AzulejosMadrid SikaBoom151",
+        "url": "https://azulejosmadridonline.es/producto/sika-boom-151-multiposicion-espuma-poliuretano-750ml/",
         "product": "SIKABOOM_151", "brand": "Sika", "category": "Espumas",
-        "selectors": [".product-info-price .price", "[itemprop='price']", ".price"],
+        "selectors": [".woocommerce-Price-amount", "[itemprop='price']", ".price"],
     },
 
-    # --- Sika Boom 582 (tejas) ---
+    # --- Sika Boom 582 (tejas) ---  REV URL antigua a confirmar
     {
         "store": "Ferrokey SikaBoom582",
         "url": "https://www.ferrokey.eu/espuma-poliuretano-sikaboom-582-tejas-750-ml",
@@ -151,47 +159,52 @@ STORES = [
         "selectors": [".product-info-price .price", "[itemprop='price']", ".price"],
     },
 
-    # --- Sika Boom 584 (tejas) ---
+    # --- Sika Boom 584 (tejas) ---  OK URL nueva (Shopify, precio en JSON-LD)
     {
-        "store": "Ferrokey SikaBoom584",
-        "url": "https://www.ferrokey.eu/espuma-poliuretano-sikaboom-584-tejas-750-ml",
+        "store": "Brikum SikaBoom584",
+        "url": "https://www.brikum.com/products/cartucho-espuma-para-pegado-de-tejas-sika-boom-584-roof-tile-750ml-sika",
         "product": "SIKABOOM_584", "brand": "Sika", "category": "Espumas",
-        "selectors": [".product-info-price .price", "[itemprop='price']", ".price"],
+        "selectors": [".price__regular .price-item", "[itemprop='price']", ".price"],
     },
 
-    # --- Sika Boom 420 Fire (ignífuga) ---
+    # --- Sika Boom 420 Fire (ignífuga) ---  OK URL nueva (PrestaShop)
     {
-        "store": "Ferrokey SikaBoom420Fire",
-        "url": "https://www.ferrokey.eu/espuma-poliuretano-ignifuga-sikaboom-420-fire-750-ml",
+        "store": "SuministrosGamesa SikaBoom420Fire",
+        "url": "https://www.suministrosgamesa.com/mis-productos/1132863-sikaboom-420-fire-750cc-7612655073556.html",
         "product": "SIKABOOM_420_FIRE", "brand": "Sika", "category": "Espumas",
-        "selectors": [".product-info-price .price", "[itemprop='price']", ".price"],
+        "selectors": ["[itemprop='price']", ".current-price .price", "#our_price_display", ".price"],
     },
 
     # --- Competidores ESPUMAS ---
+    # Quilosa Orbafoam cánula  REV URL antigua a confirmar
     {
         "store": "Bricolemar Orbafoam Canula",
         "url": "https://www.bricolemar.com/espuma-poliuretano/1827-quilosa-orbafoam-espuma-poliuretano-750ml-canula.html",
         "product": "QUILOSA_ORBAFOAM_CAN", "brand": "Quilosa", "category": "Espumas",
         "selectors": ["#our_price_display", "[itemprop='price']", ".current-price .price", ".price"],
     },
+    # Quilosa Orbafoam pistola (funciona)
     {
         "store": "Campollano Orbafoam Pistola",
         "url": "https://www.ferreteriacampollano.com/espuma-de-poliuretano-pistola-orbafoam-fijacion-60-750ml-quilosa.html",
         "product": "QUILOSA_ORBAFOAM_PIS", "brand": "Quilosa", "category": "Espumas",
         "selectors": ["[itemprop='price']", ".product-price .price", ".price"],
     },
+    # Soudal Soudafoam FR pistola (funciona)
     {
         "store": "Modrego Soudafoam FR Pistola",
         "url": "https://www.modregohogar.com/ferreteria/silicona/espumas-de-poliuretano/espuma-poliuretano-soudal-soudafoam-fr-pistola-750ml.html",
         "product": "SOUDAL_SOUDAFOAM_FR", "brand": "Soudal", "category": "Espumas",
         "selectors": ["[itemprop='price']", ".product-price .price", ".price"],
     },
+    # Soudal Soudafoam universal pistola  REV URL antigua a confirmar
     {
         "store": "Ferrokey Soudafoam Pistola",
         "url": "https://www.ferrokey.eu/espuma-poliuretano-universal-pistola-soudal-750-ml",
         "product": "SOUDAL_SOUDAFOAM_PIS", "brand": "Soudal", "category": "Espumas",
         "selectors": [".product-info-price .price", "[itemprop='price']", ".price"],
     },
+    # Penosil 123 pistola (funciona)
     {
         "store": "Ferrokey Penosil Pistola",
         "url": "https://www.ferrokey.eu/espuma-poliuretano-ultra-rapida-123-pistola-870-ml-penosil",
@@ -201,16 +214,22 @@ STORES = [
 ]
 
 
+# ---------------------------------------------------------------------------
+# Utilidades de extracción de precio
+# ---------------------------------------------------------------------------
 def _parse_price(text):
     """Extrae el primer número con formato de precio de un texto."""
-    if not text:
+    if text is None:
         return None
-    # admite 12,95 / 12.95 / 1.234,56
+    text = str(text)
     m = re.search(r"(\d{1,3}(?:[.\s]\d{3})*,\d{2}|\d+[.,]\d{2}|\d+)", text)
     if not m:
         return None
-    raw = m.group(1).replace(" ", "").replace(".", "").replace(",", ".") \
-        if "," in m.group(1) else m.group(1).replace(",", ".")
+    token = m.group(1)
+    if "," in token:                       # formato europeo 1.234,56
+        raw = token.replace(" ", "").replace(".", "").replace(",", ".")
+    else:                                  # formato 12.95 o entero
+        raw = token.replace(" ", "")
     try:
         return round(float(raw), 2)
     except ValueError:
@@ -222,51 +241,91 @@ def _in_range(product, price):
     return price is not None and lo <= price <= hi
 
 
+def _iter_jsonld_prices(soup):
+    """Recorre todos los bloques JSON-LD y va devolviendo los precios que encuentre."""
+    for tag in soup.find_all("script", attrs={"type": "application/ld+json"}):
+        raw = tag.string or tag.get_text() or ""
+        if not raw.strip():
+            continue
+        try:
+            data = json.loads(raw)
+        except Exception:
+            try:  # algunos temas dejan comas finales; intentamos limpiar
+                data = json.loads(re.sub(r",\s*([}\]])", r"\1", raw))
+            except Exception:
+                continue
+        stack = [data]
+        while stack:
+            node = stack.pop()
+            if isinstance(node, dict):
+                for key in ("price", "lowPrice", "highPrice"):
+                    if key in node:
+                        p = _parse_price(node[key])
+                        if p is not None:
+                            yield p
+                for v in node.values():
+                    if isinstance(v, (dict, list)):
+                        stack.append(v)
+            elif isinstance(node, list):
+                stack.extend(node)
+
+
+def _extract_price(entry, soup, html):
+    """Devuelve (precio, metodo) probando varias estrategias en orden de fiabilidad."""
+    product = entry["product"]
+
+    # a) JSON-LD
+    for p in _iter_jsonld_prices(soup):
+        if _in_range(product, p):
+            return p, "json-ld"
+
+    # b) microdatos <meta itemprop=price content=...>
+    for meta in soup.find_all("meta", attrs={"itemprop": "price"}):
+        p = _parse_price(meta.get("content"))
+        if _in_range(product, p):
+            return p, "meta-itemprop"
+
+    # c) selectores CSS de la entrada
+    for sel in entry.get("selectors", []):
+        for node in soup.select(sel):
+            p = _parse_price(node.get("content") or node.get_text())
+            if _in_range(product, p):
+                return p, f"css:{sel}"
+
+    # d) último recurso: menor precio dentro de rango en toda la página
+    candidates = [_parse_price(tok) for tok in re.findall(r"\d+[.,]\d{2}", html)]
+    candidates = [c for c in candidates if _in_range(product, c)]
+    if candidates:
+        return min(candidates), "fallback-min"
+
+    return None, "sin-precio"
+
+
 def scrape_store(entry, timeout=20):
-    """Devuelve el precio (float) de una tienda o None si no se encuentra."""
+    """Devuelve (precio|None, estado) para una tienda."""
     try:
         resp = requests.get(entry["url"], headers=HEADERS, timeout=timeout)
-        resp.raise_for_status()
     except Exception as exc:
-        print(f"  ✗ {entry['store']}: error de red ({exc})")
-        return None
+        return None, f"error-red ({type(exc).__name__})"
+
+    if resp.status_code != 200:
+        return None, f"HTTP {resp.status_code}"
 
     soup = BeautifulSoup(resp.text, "html.parser")
-
-    # 1) selectores específicos
-    for sel in entry["selectors"]:
-        for node in soup.select(sel):
-            price = _parse_price(node.get("content") or node.get_text())
-            if _in_range(entry["product"], price):
-                return price
-
-    # 2) fallback: meta itemprop price
-    meta = soup.find("meta", attrs={"itemprop": "price"})
-    if meta:
-        price = _parse_price(meta.get("content"))
-        if _in_range(entry["product"], price):
-            return price
-
-    # 3) fallback: el menor precio dentro de rango en toda la página
-    candidates = []
-    for token in re.findall(r"\d+[.,]\d{2}", resp.text):
-        p = _parse_price(token)
-        if _in_range(entry["product"], p):
-            candidates.append(p)
-    if candidates:
-        return min(candidates)
-
-    print(f"  ✗ {entry['store']}: sin precio válido en rango")
-    return None
+    price, method = _extract_price(entry, soup, resp.text)
+    if price is not None:
+        return price, f"OK ({method})"
+    return None, "sin precio en rango"
 
 
 def scrape_all():
-    """Rastrea todas las tiendas y devuelve una lista de dicts."""
-    rows = []
+    """Rastrea todas las tiendas, imprime un informe y devuelve las filas con precio."""
+    rows, report = [], []
     for entry in STORES:
-        price = scrape_store(entry)
+        price, status = scrape_store(entry)
+        report.append((entry["store"], entry["product"], status,
+                       f"{price:.2f}" if price is not None else "—"))
         if price is not None:
-            print(f"  ✓ {entry['store']}: {price:.2f} €")
             rows.append({
                 "store": entry["store"],
                 "product": entry["product"],
@@ -275,6 +334,26 @@ def scrape_all():
                 "price": price,
             })
         time.sleep(random.uniform(1.0, 2.5))  # cortesía con las webs
+
+    # -------- Informe de diagnóstico (se ve en el log de GitHub Actions) --------
+    ok = sum(1 for r in report if r[2].startswith("OK"))
+    print("\n" + "=" * 74)
+    print(f"INFORME DE RASTREO — {ok}/{len(report)} tiendas con precio")
+    print("=" * 74)
+    print(f"{'':2}{'TIENDA':<32}{'PRODUCTO':<22}{'PRECIO':>8}  ESTADO")
+    print("-" * 74)
+    for store, product, status, price in report:
+        flag = "  " if status.startswith("OK") else "! "
+        print(f"{flag}{store:<32}{product:<22}{price:>8}  {status}")
+    print("=" * 74)
+
+    faltan = [r for r in report if not r[2].startswith("OK")]
+    if faltan:
+        print("\nTiendas SIN precio (revisar URL/selector):")
+        for store, product, status, _ in faltan:
+            print(f"   - {store} [{product}] -> {status}")
+    print()
+
     return rows
 
 
