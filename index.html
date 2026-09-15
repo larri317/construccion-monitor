@@ -155,6 +155,10 @@ tbody tr:hover td{background:var(--s7);}
 [data-theme="dark"] .bc-Quilosa{background:#04200F;color:#7FDDA6;border-color:#0B6B3A;}
 .bc-Penosil{background:#FDEBDB;color:#B45900;border:1px solid #F3C793;}
 [data-theme="dark"] .bc-Penosil{background:#2A1400;color:#F5B36B;border-color:#6B3800;}
+.bc-Fischer{background:#E9ECEE;color:#3C444A;border:1px solid #C3CBD1;}
+[data-theme="dark"] .bc-Fischer{background:#1C2024;color:#B7C0C7;border-color:#4A5359;}
+.bc-Ceys{background:#F1E3F7;color:#7A1FA2;border:1px solid #DDB8EE;}
+[data-theme="dark"] .bc-Ceys{background:#2A0F38;color:#D19CE8;border-color:#5A2775;}
 .cat-chip{display:inline-flex;align-items:center;gap:3px;font-family:var(--font-mono);font-size:9px;font-weight:600;padding:2px 7px;border-radius:20px;}
 .cc-Selladores{background:#FFFBEB;color:#92400E;}.cc-Espumas{background:#E6F6F4;color:#0B5C53;}
 
@@ -473,15 +477,24 @@ const PNAMES = {
   SIKABOOM_584:"Sika Boom-584 (tejas)", SIKABOOM_420_FIRE:"Sika Boom-420 Fire",
   QUILOSA_ORBAFOAM_CAN:"Quilosa Orbafoam (cánula)", QUILOSA_ORBAFOAM_PIS:"Quilosa Orbafoam (pistola)",
   QUILOSA_ORBAFOAM_TEJ:"Quilosa Orbafoam (tejas)", QUILOSA_FIRESTOP:"Quilosa Fire Stop",
-  SOUDAL_SOUDAFOAM_CAN:"Soudal Soudafoam (cánula)", SOUDAL_SOUDAFOAM_PIS:"Soudal Soudafoam (pistola)",
-  SOUDAL_SOUDAFOAM_FR:"Soudal Soudafoam FR", PENOSIL_PISTOLA:"Penosil 123 (pistola)"
+  SOUDAL_SOUDAFOAM_CAN:"Soudal Profoam (manual)", SOUDAL_SOUDAFOAM_PIS:"Soudal Profoam (pistola)",
+  SOUDAL_SOUDAFOAM_FR:"Soudal Soudafoam FR", PENOSIL_PISTOLA:"Penosil 123 (pistola)",
+  SOUDAL_SOUDAFLEX_40FC:"Soudaflex 40 FC", QUILOSA_PU50:"Quilosa PU-50",
+  FISCHER_PURFLEX:"Fischer PurFlex", PENOSIL_TECNOPUR_P40:"Penosil PU-40 FC (Tecnopur)",
+  SOUDAL_TEJAS:"Soudal Soudafoam (tejas)", FISCHER_PUP_PISTOLA:"Fischer PU (pistola)",
+  FISCHER_PU_MANUAL:"Fischer PU (manual)", FISCHER_PU_TEJAS:"Fischer PU (tejas)",
+  CEYS_ESPUMAX:"Ceys Espumax", PENOSIL_PU46_PISTOLA:"Penosil PU-46 (pistola)",
+  PENOSIL_PU46_MANUAL:"Penosil PU-46 (manual)"
 };
 /* Marca de cada producto */
 const PBRANDS = {
   SIKAFLEX_11FC:"Sika", BOSTIK_P795:"Bostik", BOSTIK_P360:"Bostik", SOUDAL_SOUDASEAL:"Soudal", MAPEI_PU45:"Mapei",
   SIKABOOM_180:"Sika", SIKABOOM_580:"Sika", SIKABOOM_151:"Sika", SIKABOOM_582:"Sika", SIKABOOM_584:"Sika", SIKABOOM_420_FIRE:"Sika",
   QUILOSA_ORBAFOAM_CAN:"Quilosa", QUILOSA_ORBAFOAM_PIS:"Quilosa", QUILOSA_ORBAFOAM_TEJ:"Quilosa", QUILOSA_FIRESTOP:"Quilosa",
-  SOUDAL_SOUDAFOAM_CAN:"Soudal", SOUDAL_SOUDAFOAM_PIS:"Soudal", SOUDAL_SOUDAFOAM_FR:"Soudal", PENOSIL_PISTOLA:"Penosil"
+  SOUDAL_SOUDAFOAM_CAN:"Soudal", SOUDAL_SOUDAFOAM_PIS:"Soudal", SOUDAL_SOUDAFOAM_FR:"Soudal", PENOSIL_PISTOLA:"Penosil",
+  SOUDAL_SOUDAFLEX_40FC:"Soudal", QUILOSA_PU50:"Quilosa", FISCHER_PURFLEX:"Fischer", PENOSIL_TECNOPUR_P40:"Penosil",
+  SOUDAL_TEJAS:"Soudal", FISCHER_PUP_PISTOLA:"Fischer", FISCHER_PU_MANUAL:"Fischer", FISCHER_PU_TEJAS:"Fischer",
+  CEYS_ESPUMAX:"Ceys", PENOSIL_PU46_PISTOLA:"Penosil", PENOSIL_PU46_MANUAL:"Penosil"
 };
 /* Color corporativo (aprox.) de cada marca, aplicado por producto */
 const PCOLORS = {
@@ -492,12 +505,17 @@ const PCOLORS = {
   MAPEI_PU45:"#004C97",
   QUILOSA_ORBAFOAM_CAN:"#0B8F53", QUILOSA_ORBAFOAM_PIS:"#0B6B3A", QUILOSA_ORBAFOAM_TEJ:"#0A5C36", QUILOSA_FIRESTOP:"#083F26",
   PENOSIL_PISTOLA:"#E8720C",
+  SOUDAL_SOUDAFLEX_40FC:"#E20613", SOUDAL_TEJAS:"#9A0710",
+  QUILOSA_PU50:"#0B8F53",
+  FISCHER_PURFLEX:"#5B6770", FISCHER_PUP_PISTOLA:"#4A5359", FISCHER_PU_MANUAL:"#3C444A", FISCHER_PU_TEJAS:"#2E3438",
+  CEYS_ESPUMAX:"#7A1FA2",
+  PENOSIL_TECNOPUR_P40:"#E8720C", PENOSIL_PU46_PISTOLA:"#D4650A", PENOSIL_PU46_MANUAL:"#B8560A",
 };
 /* Categorías */
 const CATS = {
-  Selladores:{sika:['SIKAFLEX_11FC'],comp:['BOSTIK_P795','BOSTIK_P360','SOUDAL_SOUDASEAL','MAPEI_PU45'],color:'#FCC500',icon:'🧴'},
+  Selladores:{sika:['SIKAFLEX_11FC'],comp:['SOUDAL_SOUDAFLEX_40FC','QUILOSA_PU50','FISCHER_PURFLEX','PENOSIL_TECNOPUR_P40'],color:'#FCC500',icon:'🧴'},
   Espumas:{sika:['SIKABOOM_180','SIKABOOM_580','SIKABOOM_151','SIKABOOM_582','SIKABOOM_584','SIKABOOM_420_FIRE'],
-           comp:['QUILOSA_ORBAFOAM_CAN','QUILOSA_ORBAFOAM_PIS','SOUDAL_SOUDAFOAM_FR','SOUDAL_SOUDAFOAM_PIS','PENOSIL_PISTOLA'],
+           comp:['QUILOSA_ORBAFOAM_CAN','QUILOSA_ORBAFOAM_PIS','QUILOSA_ORBAFOAM_TEJ','SOUDAL_SOUDAFOAM_FR','SOUDAL_SOUDAFOAM_PIS','SOUDAL_SOUDAFOAM_CAN','SOUDAL_TEJAS','PENOSIL_PISTOLA','PENOSIL_PU46_PISTOLA','PENOSIL_PU46_MANUAL','FISCHER_PUP_PISTOLA','FISCHER_PU_MANUAL','FISCHER_PU_TEJAS','CEYS_ESPUMAX'],
            color:'#0B8F83',icon:'🧯'},
 };
 /* Listas derivadas de CATS: comparativa, ranking y pestañas usan SIEMPRE los mismos productos */
@@ -508,12 +526,20 @@ const ALL_P=[...SIKA_P,...COMP_P];
 /* Rival directo de cada producto Sika (solo competidores que se rastrean).
    Edita aquí si quieres cambiar contra quién se compara cada producto. */
 const RIVALS = {
-  SIKAFLEX_11FC:     ['BOSTIK_P795','BOSTIK_P360','SOUDAL_SOUDASEAL','MAPEI_PU45'],
-  SIKABOOM_180:      ['QUILOSA_ORBAFOAM_CAN'],
-  SIKABOOM_580:      ['QUILOSA_ORBAFOAM_PIS','SOUDAL_SOUDAFOAM_PIS','PENOSIL_PISTOLA'],
-  SIKABOOM_151:      ['QUILOSA_ORBAFOAM_PIS','SOUDAL_SOUDAFOAM_PIS','PENOSIL_PISTOLA'],
-  SIKABOOM_582:      ['QUILOSA_ORBAFOAM_PIS','SOUDAL_SOUDAFOAM_PIS'],
-  SIKABOOM_584:      [],   // tejas: sin rival rastreado por ahora
+  // Sikaflex-11FC: SOLO cartucho 290-310ml (petición cliente 2026-09-15).
+  // Würth Mastic PU 40 Plus queda fuera: su tienda oculta el precio tras login.
+  SIKAFLEX_11FC:     ['SOUDAL_SOUDAFLEX_40FC','QUILOSA_PU50','FISCHER_PURFLEX','PENOSIL_TECNOPUR_P40'],
+  // Sika Boom-180 (manual/cánula). Falta confirmar tienda con precio para Würth.
+  SIKABOOM_180:      ['SOUDAL_SOUDAFOAM_CAN','QUILOSA_ORBAFOAM_CAN','FISCHER_PU_MANUAL','CEYS_ESPUMAX','PENOSIL_PU46_MANUAL'],
+  // Sika Boom-580 (pistola). Würth PU PurLogic Flex sin tienda con precio público.
+  SIKABOOM_580:      ['SOUDAL_SOUDAFOAM_PIS','QUILOSA_ORBAFOAM_PIS','FISCHER_PUP_PISTOLA','CEYS_ESPUMAX','PENOSIL_PU46_PISTOLA'],
+  // Sika Boom-151 Multiposición: el único rival pedido (Penosil EasyGun PU45) no
+  // tiene tienda online con precio público confirmado todavía.
+  SIKABOOM_151:      [],
+  SIKABOOM_582:      [],   // no solicitado en la petición de comparativas
+  // Sika Boom-584 (tejas). Pendientes: Penosil PU-49, Würth Espuma PU Tejas,
+  // Ceys Espumax Tejas Cánula y Quilosa Orbafoam Tejas (sin tienda confirmada).
+  SIKABOOM_584:      ['SOUDAL_TEJAS','FISCHER_PU_TEJAS'],
   SIKABOOM_420_FIRE: ['SOUDAL_SOUDAFOAM_FR'],
 };
 
@@ -537,6 +563,19 @@ const STORE_URLS = {
   "Modrego Soudafoam FR Pistola":"https://www.modregohogar.com/ferreteria/silicona/espumas-de-poliuretano/espuma-poliuretano-soudal-soudafoam-fr-pistola-750ml.html",
   "Ferrokey Soudafoam Pistola":"https://www.ferrokey.eu/espuma-poliuretano-universal-pistola-soudal-750-ml",
   "Ferrokey Penosil Pistola":"https://www.ferrokey.eu/espuma-poliuretano-ultra-rapida-123-pistola-870-ml-penosil",
+  "LeroyMerlin Soudaflex40FC":"https://www.leroymerlin.es/productos/construccion/impermeabilizacion-y-estanqueidad/adhesivos-siliconas-y-espumas-pu/selladores/masilla-de-poliuretano-450-soudaflex-300-ml-marron-82718586.html",
+  "ManoMano QuilosaPU50":"https://www.manomano.es/p/sintex-pu-50-alto-cr300-blanco-45609-643596",
+  "ManoMano FischerPurflex":"https://www.manomano.es/p/masilla-poliuretano-blanco-bote-310ml-1907217",
+  "LaTiendaElectricidad PenosilTecnopurP40":"https://www.latiendadeelectricidad.com/fr/mastics/603596-mastic-polyurethane-tecnopur-p-40-300-ml-marron-penosil-8425589405107.html",
+  "LeroyMerlin SoudalProfoamPistola":"https://www.leroymerlin.es/productos/espuma-de-poliuretano-soudal-profoam-750-ml-para-puertas-ventanas-y-paredes-en-color-amarillo-tiempo-de-secado-25-minutos-aplicacion-con-pistola-17668714.html",
+  "ManoMano SoudalProfoamManual":"https://www.manomano.es/p/espuma-de-poliuretano-profoam-de-750ml-2631529",
+  "LeroyMerlin SoudalTejas":"https://www.leroymerlin.es/productos/espuma-de-poliuretano-soudafoam-tejas-tt-pistola-750-ml-81875136.html",
+  "LeroyMerlin FischerPUPPistola":"https://www.leroymerlin.es/productos/pistola-fischer-espuma-poliuretano-pup-1k-750-84541566.html",
+  "LeroyMerlin FischerPUManual":"https://www.leroymerlin.es/productos/espuma-de-poliuretano-expansiva-profesional-fischer-750-ml-manual-15355494.html",
+  "LeroyMerlin FischerPUTejas":"https://www.leroymerlin.es/productos/espuma-de-poliuretano-expansiva-tejas-fischer-750-ml-pistola-15355522.html",
+  "ManoMano CeysEspumax":"https://www.manomano.es/p/espuma-poliuretano-aislar-y-rellenar-750ml-37597090",
+  "ManoMano PenosilPU46Pistola":"https://www.manomano.es/p/espuma-poliuretano-pistola-pu46-750-ml-78235849",
+  "TiendaReco PenosilPU46Manual":"https://tiendareco.com/ferreteria/productos-quimicos-pinturas-y-drogueria/colas-adhesivos-y-masillas/espuma-poliuretano-pu-46-manual-canula-750-ml-olive",
 };
 
 const PAGE_TITLES={posicion:'Posicionamiento · Sika vs Competencia',resumen:'Resumen Global',comparativa:'Comparativa de Mercado',evolucion:'Evolución de Precios',selladores:'Selladores PU',espumas:'Espumas PU'};
