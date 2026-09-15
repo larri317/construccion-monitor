@@ -43,13 +43,17 @@ HEADERS = {
 # rango, se descarta (evita coger precios de envío, packs, IVA suelto, etc.).
 # ---------------------------------------------------------------------------
 PRICE_RANGES = {
-    # --- Selladores (cartucho ~300 ml) ---
+    # --- Selladores (cartucho 290-310 ml, NUNCA unipacs/salchichas de 600 ml) ---
     "SIKAFLEX_11FC":        (5, 35),
     "BOSTIK_P795":          (4, 30),
     "BOSTIK_P360":          (4, 25),
     "SOUDAL_SOUDASEAL":     (4, 25),
     "MAPEI_PU45":           (4, 25),
-    # --- Espumas (750 ml) ---
+    "SOUDAL_SOUDAFLEX_40FC":(3, 20),   # rival Sikaflex-11FC (cartucho 300ml, Leroy Merlin lo etiqueta "450")
+    "QUILOSA_PU50":         (3, 20),   # rival Sikaflex-11FC
+    "FISCHER_PURFLEX":      (5, 25),   # rival Sikaflex-11FC (310ml)
+    "PENOSIL_TECNOPUR_P40": (4, 20),   # rival Sikaflex-11FC (equivalente a "PU-40 FC" de Penosil)
+    # --- Espumas (SOLO formato 750 ml) ---
     "SIKABOOM_180":         (4, 20),
     "SIKABOOM_580":         (5, 22),
     "SIKABOOM_151":         (5, 22),
@@ -63,7 +67,14 @@ PRICE_RANGES = {
     "SOUDAL_SOUDAFOAM_CAN": (4, 18),
     "SOUDAL_SOUDAFOAM_PIS": (5, 20),
     "SOUDAL_SOUDAFOAM_FR":  (8, 25),
+    "SOUDAL_TEJAS":         (4, 22),   # rival Boom-584
     "PENOSIL_PISTOLA":      (5, 20),
+    "PENOSIL_PU46_PISTOLA": (2, 18),   # rival Boom-580
+    "PENOSIL_PU46_MANUAL":  (2, 18),   # rival Boom-180
+    "FISCHER_PUP_PISTOLA":  (3, 25),   # rival Boom-580
+    "FISCHER_PU_MANUAL":    (3, 22),   # rival Boom-180
+    "FISCHER_PU_TEJAS":     (3, 22),   # rival Boom-584
+    "CEYS_ESPUMAX":         (4, 22),   # rival Boom-580 y Boom-180 (Ceys solo vende 1 formato en España)
 }
 
 # ---------------------------------------------------------------------------
@@ -211,6 +222,99 @@ STORES = [
         "product": "PENOSIL_PISTOLA", "brand": "Penosil", "category": "Espumas",
         "selectors": [".product-info-price .price", "[itemprop='price']", ".price"],
     },
+
+    # ===================== NUEVOS RIVALES (petición cliente) =====================
+    # --- Sikaflex-11FC: rivales en cartucho 290-310ml (NO unipacs 600ml) ---
+    {
+        "store": "LeroyMerlin Soudaflex40FC",
+        "url": "https://www.leroymerlin.es/productos/construccion/impermeabilizacion-y-estanqueidad/adhesivos-siliconas-y-espumas-pu/selladores/masilla-de-poliuretano-450-soudaflex-300-ml-marron-82718586.html",
+        "product": "SOUDAL_SOUDAFLEX_40FC", "brand": "Soudal", "category": "Selladores",
+        "selectors": ["[itemprop='price']", ".price", ".product-price"],
+    },
+    {
+        "store": "ManoMano QuilosaPU50",
+        "url": "https://www.manomano.es/p/sintex-pu-50-alto-cr300-blanco-45609-643596",
+        "product": "QUILOSA_PU50", "brand": "Quilosa", "category": "Selladores",
+        "selectors": ["[itemprop='price']", ".price"],
+    },
+    {
+        "store": "ManoMano FischerPurflex",
+        "url": "https://www.manomano.es/p/masilla-poliuretano-blanco-bote-310ml-1907217",
+        "product": "FISCHER_PURFLEX", "brand": "Fischer", "category": "Selladores",
+        "selectors": ["[itemprop='price']", ".price"],
+    },
+    {
+        # REV: tienda multi-idioma (ruta /fr/) pero venta en España; confirmar precio tras primer rastreo
+        "store": "LaTiendaElectricidad PenosilTecnopurP40",
+        "url": "https://www.latiendadeelectricidad.com/fr/mastics/603596-mastic-polyurethane-tecnopur-p-40-300-ml-marron-penosil-8425589405107.html",
+        "product": "PENOSIL_TECNOPUR_P40", "brand": "Penosil", "category": "Selladores",
+        "selectors": ["[itemprop='price']", ".price", "#our_price_display"],
+    },
+    # Nota: Würth Mastic PU 40 Plus queda FUERA del rastreo (wurth.es oculta el precio
+    # hasta iniciar sesión; no se encontró distribuidor con precio público).
+
+    # --- Espumas 750ml: rivales de Boom-580 (pistola), Boom-180 (manual) y Boom-584 (tejas) ---
+    {
+        "store": "LeroyMerlin SoudalProfoamPistola",
+        "url": "https://www.leroymerlin.es/productos/espuma-de-poliuretano-soudal-profoam-750-ml-para-puertas-ventanas-y-paredes-en-color-amarillo-tiempo-de-secado-25-minutos-aplicacion-con-pistola-17668714.html",
+        "product": "SOUDAL_SOUDAFOAM_PIS", "brand": "Soudal", "category": "Espumas",
+        "selectors": [".price", "[itemprop='price']"],
+    },
+    {
+        "store": "ManoMano SoudalProfoamManual",
+        "url": "https://www.manomano.es/p/espuma-de-poliuretano-profoam-de-750ml-2631529",
+        "product": "SOUDAL_SOUDAFOAM_CAN", "brand": "Soudal", "category": "Espumas",
+        "selectors": ["[itemprop='price']", ".price"],
+    },
+    {
+        "store": "LeroyMerlin SoudalTejas",
+        "url": "https://www.leroymerlin.es/productos/espuma-de-poliuretano-soudafoam-tejas-tt-pistola-750-ml-81875136.html",
+        "product": "SOUDAL_TEJAS", "brand": "Soudal", "category": "Espumas",
+        "selectors": [".price", "[itemprop='price']"],
+    },
+    {
+        "store": "LeroyMerlin FischerPUPPistola",
+        "url": "https://www.leroymerlin.es/productos/pistola-fischer-espuma-poliuretano-pup-1k-750-84541566.html",
+        "product": "FISCHER_PUP_PISTOLA", "brand": "Fischer", "category": "Espumas",
+        "selectors": [".price", "[itemprop='price']"],
+    },
+    {
+        "store": "LeroyMerlin FischerPUManual",
+        "url": "https://www.leroymerlin.es/productos/espuma-de-poliuretano-expansiva-profesional-fischer-750-ml-manual-15355494.html",
+        "product": "FISCHER_PU_MANUAL", "brand": "Fischer", "category": "Espumas",
+        "selectors": [".price", "[itemprop='price']"],
+    },
+    {
+        "store": "LeroyMerlin FischerPUTejas",
+        "url": "https://www.leroymerlin.es/productos/espuma-de-poliuretano-expansiva-tejas-fischer-750-ml-pistola-15355522.html",
+        "product": "FISCHER_PU_TEJAS", "brand": "Fischer", "category": "Espumas",
+        "selectors": [".price", "[itemprop='price']"],
+    },
+    {
+        "store": "ManoMano CeysEspumax",
+        "url": "https://www.manomano.es/p/espuma-poliuretano-aislar-y-rellenar-750ml-37597090",
+        "product": "CEYS_ESPUMAX", "brand": "Ceys", "category": "Espumas",
+        "selectors": ["[itemprop='price']", ".price"],
+    },
+    {
+        "store": "ManoMano PenosilPU46Pistola",
+        "url": "https://www.manomano.es/p/espuma-poliuretano-pistola-pu46-750-ml-78235849",
+        "product": "PENOSIL_PU46_PISTOLA", "brand": "Penosil", "category": "Espumas",
+        "selectors": ["[itemprop='price']", ".price"],
+    },
+    {
+        "store": "TiendaReco PenosilPU46Manual",
+        "url": "https://tiendareco.com/ferreteria/productos-quimicos-pinturas-y-drogueria/colas-adhesivos-y-masillas/espuma-poliuretano-pu-46-manual-canula-750-ml-olive",
+        "product": "PENOSIL_PU46_MANUAL", "brand": "Penosil", "category": "Espumas",
+        "selectors": [".price", "[itemprop='price']"],
+    },
+    # Pendientes (no se encontró tienda online con precio público en 750ml):
+    #   - Würth PU PurLogic Flex (rival Boom-580) y Würth Espuma PU Tejas (rival Boom-584)
+    #   - Penosil PU-49 (rival Boom-584)
+    #   - Penosil EasyGun PU 45 (rival Boom-151 Multiposición)
+    #   - Ceys Espumax Tejas Cánula (rival Boom-584) - Ceys solo vende una única
+    #     referencia "Aislar y Rellenar" en España, reutilizada arriba para 580/180
+    #   - Quilosa Orbafoam Tejas 750ml (código ya reservado, falta URL fiable)
 ]
 
 
