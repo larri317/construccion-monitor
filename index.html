@@ -159,6 +159,8 @@ tbody tr:hover td{background:var(--s7);}
 [data-theme="dark"] .bc-Fischer{background:#1C2024;color:#B7C0C7;border-color:#4A5359;}
 .bc-Ceys{background:#F1E3F7;color:#7A1FA2;border:1px solid #DDB8EE;}
 [data-theme="dark"] .bc-Ceys{background:#2A0F38;color:#D19CE8;border-color:#5A2775;}
+.bc-Wurth{background:#FDECEC;color:#A6192E;border:1px solid #F0B8BE;}
+[data-theme="dark"] .bc-Wurth{background:#2A0509;color:#F0A0AC;border-color:#6B1420;}
 .cat-chip{display:inline-flex;align-items:center;gap:3px;font-family:var(--font-mono);font-size:9px;font-weight:600;padding:2px 7px;border-radius:20px;}
 .cc-Selladores{background:#FFFBEB;color:#92400E;}.cc-Espumas{background:#E6F6F4;color:#0B5C53;}
 
@@ -261,13 +263,8 @@ tbody tr:hover td{background:var(--s7);}
     </div>
   </div>
   <nav class="topbar-nav">
-    <div class="nav-item active" onclick="showView('posicion')" id="nav-posicion"><div class="ni-dot" style="background:var(--y)"></div>🎯 Posicionamiento</div>
-    <div class="nav-item" onclick="showView('resumen')" id="nav-resumen"><div class="ni-dot" style="background:#555"></div>Resumen</div>
-    <div class="nav-item" onclick="showView('comparativa')" id="nav-comparativa"><div class="ni-dot" style="background:#777"></div>Comparativa</div>
-    <div class="nav-item" onclick="showView('evolucion')" id="nav-evolucion"><div class="ni-dot" style="background:#888"></div>Evolución</div>
-    <div class="nav-sep"></div>
-    <div class="nav-item" onclick="showView('selladores')" id="nav-selladores"><div class="ni-dot" style="background:var(--cat-sel)"></div>🧴 Selladores</div>
-    <div class="nav-item" onclick="showView('espumas')" id="nav-espumas"><div class="ni-dot" style="background:var(--cat-esp)"></div>🧯 Espumas</div>
+    <div class="nav-item active" onclick="showView('selladores')" id="nav-selladores"><div class="ni-dot" style="background:var(--cat-sel)"></div>🧴 Sikaflex 11FC</div>
+    <div class="nav-item" onclick="showView('espumas')" id="nav-espumas"><div class="ni-dot" style="background:var(--cat-esp)"></div>🧯 Espumas PU</div>
   </nav>
 </div>
 
@@ -275,7 +272,7 @@ tbody tr:hover td{background:var(--s7);}
 <div class="main">
   <div class="sub-topbar">
     <div class="sub-topbar-left">
-      <span class="page-title" id="pageTitle">Resumen Global</span>
+      <span class="page-title" id="pageTitle">Sikaflex 11FC · vs Competencia</span>
     </div>
     <div class="sub-topbar-right">
       <div class="date-chip" id="dateChip">—</div>
@@ -285,100 +282,10 @@ tbody tr:hover td{background:var(--s7);}
   <div class="content" id="appContent" style="display:none">
     <div id="alertsContainer"></div>
 
-    <!-- ═══ POSICIONAMIENTO ═══ -->
-    <div class="view active" id="view-posicion">
-      <div class="kpi-strip" id="posKpiGrid"></div>
-      <div class="card" style="border-top:3px solid var(--y)">
-        <div class="card-header">
-          <span class="card-title">🎯 Sika vs competencia directa — hoy</span>
-          <div class="card-actions">
-            <div class="search-wrap">
-              <span class="search-icon">🔍</span>
-              <input type="text" id="posSearch" placeholder="Filtrar producto..." oninput="filterTables(this.value)">
-            </div>
-            <span class="card-meta" id="posSummary">—</span>
-          </div>
-        </div>
-        <div class="tbl-wrap">
-          <table><thead><tr>
-            <th>Producto Sika</th><th>Mi precio</th><th>Rival + barato</th><th>Δ vs + barato</th><th>Media rivales</th><th>Estado</th><th>Tend.</th>
-          </tr></thead>
-          <tbody id="posMatrixBody"></tbody></table>
-        </div>
-        <div style="font-size:11px;color:var(--s4);margin-top:12px">Verde = Sika más barato que el rival · Rojo = Sika más caro. La fila inferior de cada producto detalla cada competidor. Comparación por precio absoluto.</div>
-      </div>
-    </div>
-
-    <!-- ═══ RESUMEN ═══ -->
-    <div class="view" id="view-resumen">
-      <div class="kpi-strip" id="kpiGrid"></div>
-      <div class="grid-cat" id="catCards"></div>
-      <div class="card">
-        <div class="card-header">
-          <span class="card-title">🏆 Ranking global — precios más bajos hoy</span>
-          <div class="card-actions">
-            <div class="search-wrap">
-              <span class="search-icon">🔍</span>
-              <input type="text" id="globalSearch" placeholder="Filtro de tiendas..." oninput="filterTables(this.value)">
-            </div>
-            <span class="card-meta" id="rankingMeta">Top 15</span>
-          </div>
-        </div>
-        <div class="tbl-wrap">
-          <table><thead><tr>
-            <th>#</th><th>Cat.</th><th>Marca</th><th>Producto</th><th>Tienda</th><th>Precio</th><th>vs Media</th><th>Link</th>
-          </tr></thead>
-          <tbody id="rankingBody"></tbody></table>
-        </div>
-      </div>
-    </div>
-
-    <!-- ═══ COMPARATIVA ═══ -->
-    <div class="view" id="view-comparativa">
-      <div class="card">
-        <div class="card-header"><span class="card-title">Todos los productos — precio medio hoy</span></div>
-        <div class="chart-wrap" style="height:300px"><canvas id="compareBarChart"></canvas></div>
-      </div>
-      <div class="grid-2">
-        <div class="card" style="border-top:3px solid var(--cat-sel)">
-          <div class="card-header"><span class="card-title">🧴 Sika vs Comp · Selladores</span></div>
-          <div id="vsSelladores"></div>
-        </div>
-        <div class="card" style="border-top:3px solid var(--cat-esp)">
-          <div class="card-header"><span class="card-title">🧯 Sika vs Comp · Espumas</span></div>
-          <div id="vsEspumas"></div>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-header"><span class="card-title">Posicionamiento en el mercado</span><span class="card-meta">De más barato a más caro</span></div>
-        <div id="marketPos"></div>
-      </div>
-      <div class="card">
-        <div class="card-header"><span class="card-title">Evolución histórica — Sika (línea) vs Competencia (guiones)</span></div>
-        <div class="chart-wrap" style="height:300px"><canvas id="allLineChart"></canvas></div>
-      </div>
-    </div>
-
-    <!-- ═══ EVOLUCIÓN ═══ -->
-    <div class="view" id="view-evolucion">
-      <div class="evo-filters" id="evoFilters">
-        <span class="evo-label">Filtrar:</span>
-        <button class="ef-btn ef-active" id="ef-all" onclick="setEvo('all')" style="border-color:#0A0A0A;background:#0A0A0A;color:#FCC500">Todos</button>
-      </div>
-      <div class="card">
-        <div class="card-header"><span class="card-title">Precio medio diario</span><span class="card-meta" id="evoDays">—</span></div>
-        <div class="chart-wrap" style="height:300px"><canvas id="evoLineChart"></canvas></div>
-      </div>
-      <div class="card">
-        <div class="card-header"><span class="card-title">Comparativa últimos 14 días</span></div>
-        <div class="chart-wrap" style="height:260px"><canvas id="evoBarChart"></canvas></div>
-      </div>
-    </div>
-
-    <!-- ═══ SELLADORES ═══ -->
-    <div class="view" id="view-selladores">
+    <!-- ═══ SELLADORES (Sikaflex 11FC) ═══ -->
+    <div class="view active" id="view-selladores">
       <div class="section-header">
-        <div class="sec-badge" style="background:var(--cat-sel);color:#000">🧴 Selladores PU</div>
+        <div class="sec-badge" style="background:var(--cat-sel);color:#000">🧴 Sikaflex-11 FC · Sellador de Poliuretano</div>
         <div class="sec-line"></div>
       </div>
       <div class="grid-2">
@@ -387,13 +294,13 @@ tbody tr:hover td{background:var(--s7);}
           <div class="bar-list" id="selladoresSikaBars"></div>
         </div>
         <div class="card">
-          <div class="card-header"><span class="card-title">Competencia · Media hoy</span></div>
+          <div class="card-header"><span class="card-title">Competencia (cartuchos) · Media hoy</span></div>
           <div class="bar-list" id="selladoresCompBars"></div>
         </div>
       </div>
       <div class="card">
         <div class="card-header">
-          <span class="card-title">Precios por tienda</span>
+          <span class="card-title">Precios por tienda — cartuchos</span>
           <div class="card-actions"><span class="card-meta" id="selladoresDate">—</span></div>
         </div>
         <div class="tbl-wrap">
@@ -403,7 +310,7 @@ tbody tr:hover td{background:var(--s7);}
       </div>
       <div class="grid-2">
         <div class="card">
-          <div class="card-header"><span class="card-title">Sika vs Competencia</span></div>
+          <div class="card-header"><span class="card-title">Sikaflex 11FC vs cada rival</span></div>
           <div id="selladoresVs"></div>
         </div>
         <div class="card">
@@ -479,8 +386,9 @@ const PNAMES = {
   QUILOSA_ORBAFOAM_TEJ:"Quilosa Orbafoam (tejas)", QUILOSA_FIRESTOP:"Quilosa Fire Stop",
   SOUDAL_SOUDAFOAM_CAN:"Soudal Profoam (manual)", SOUDAL_SOUDAFOAM_PIS:"Soudal Profoam (pistola)",
   SOUDAL_SOUDAFOAM_FR:"Soudal Soudafoam FR", PENOSIL_PISTOLA:"Penosil 123 (pistola)",
-  SOUDAL_SOUDAFLEX_40FC:"Soudaflex 40 FC", QUILOSA_PU50:"Quilosa PU-50",
-  FISCHER_PURFLEX:"Fischer PurFlex", PENOSIL_TECNOPUR_P40:"Penosil PU-40 FC (Tecnopur)",
+  SOUDAL_SOUDAFLEX_40FC:"Soudaflex 40 FC", QUILOSA_PU50:"Quilosa PU-50 Masilla de Poliuretano",
+  FISCHER_PURFLEX:"Fischer PurFlex", PENOSIL_TECNOPUR_P40:"Penosil Poliuretena PU-40 FC",
+  WURTH_MASTIC_PU40:"Würth Mastic PU 40 Plus",
   SOUDAL_TEJAS:"Soudal Soudafoam (tejas)", FISCHER_PUP_PISTOLA:"Fischer PU (pistola)",
   FISCHER_PU_MANUAL:"Fischer PU (manual)", FISCHER_PU_TEJAS:"Fischer PU (tejas)",
   CEYS_ESPUMAX:"Ceys Espumax", PENOSIL_PU46_PISTOLA:"Penosil PU-46 (pistola)",
@@ -493,9 +401,12 @@ const PBRANDS = {
   QUILOSA_ORBAFOAM_CAN:"Quilosa", QUILOSA_ORBAFOAM_PIS:"Quilosa", QUILOSA_ORBAFOAM_TEJ:"Quilosa", QUILOSA_FIRESTOP:"Quilosa",
   SOUDAL_SOUDAFOAM_CAN:"Soudal", SOUDAL_SOUDAFOAM_PIS:"Soudal", SOUDAL_SOUDAFOAM_FR:"Soudal", PENOSIL_PISTOLA:"Penosil",
   SOUDAL_SOUDAFLEX_40FC:"Soudal", QUILOSA_PU50:"Quilosa", FISCHER_PURFLEX:"Fischer", PENOSIL_TECNOPUR_P40:"Penosil",
+  WURTH_MASTIC_PU40:"Würth",
   SOUDAL_TEJAS:"Soudal", FISCHER_PUP_PISTOLA:"Fischer", FISCHER_PU_MANUAL:"Fischer", FISCHER_PU_TEJAS:"Fischer",
   CEYS_ESPUMAX:"Ceys", PENOSIL_PU46_PISTOLA:"Penosil", PENOSIL_PU46_MANUAL:"Penosil"
 };
+/* Slug ASCII de marca para usar en clases CSS (bc-XXX) cuando el nombre visible lleva tilde/diéresis */
+const BRAND_SLUG = { "Würth":"Wurth" };
 /* Color corporativo (aprox.) de cada marca, aplicado por producto */
 const PCOLORS = {
   SIKAFLEX_11FC:"#FCC500", SIKABOOM_180:"#FCC500", SIKABOOM_580:"#FCC500", SIKABOOM_151:"#FCC500",
@@ -510,10 +421,11 @@ const PCOLORS = {
   FISCHER_PURFLEX:"#5B6770", FISCHER_PUP_PISTOLA:"#4A5359", FISCHER_PU_MANUAL:"#3C444A", FISCHER_PU_TEJAS:"#2E3438",
   CEYS_ESPUMAX:"#7A1FA2",
   PENOSIL_TECNOPUR_P40:"#E8720C", PENOSIL_PU46_PISTOLA:"#D4650A", PENOSIL_PU46_MANUAL:"#B8560A",
+  WURTH_MASTIC_PU40:"#A6192E",
 };
 /* Categorías */
 const CATS = {
-  Selladores:{sika:['SIKAFLEX_11FC'],comp:['SOUDAL_SOUDAFLEX_40FC','QUILOSA_PU50','FISCHER_PURFLEX','PENOSIL_TECNOPUR_P40'],color:'#FCC500',icon:'🧴'},
+  Selladores:{sika:['SIKAFLEX_11FC'],comp:['SOUDAL_SOUDAFLEX_40FC','QUILOSA_PU50','FISCHER_PURFLEX','PENOSIL_TECNOPUR_P40','WURTH_MASTIC_PU40'],color:'#FCC500',icon:'🧴'},
   Espumas:{sika:['SIKABOOM_180','SIKABOOM_580','SIKABOOM_151','SIKABOOM_582','SIKABOOM_584','SIKABOOM_420_FIRE'],
            comp:['QUILOSA_ORBAFOAM_CAN','QUILOSA_ORBAFOAM_PIS','QUILOSA_ORBAFOAM_TEJ','SOUDAL_SOUDAFOAM_FR','SOUDAL_SOUDAFOAM_PIS','SOUDAL_SOUDAFOAM_CAN','SOUDAL_TEJAS','PENOSIL_PISTOLA','PENOSIL_PU46_PISTOLA','PENOSIL_PU46_MANUAL','FISCHER_PUP_PISTOLA','FISCHER_PU_MANUAL','FISCHER_PU_TEJAS','CEYS_ESPUMAX'],
            color:'#0B8F83',icon:'🧯'},
@@ -526,9 +438,8 @@ const ALL_P=[...SIKA_P,...COMP_P];
 /* Rival directo de cada producto Sika (solo competidores que se rastrean).
    Edita aquí si quieres cambiar contra quién se compara cada producto. */
 const RIVALS = {
-  // Sikaflex-11FC: SOLO cartucho 290-310ml (petición cliente 2026-09-15).
-  // Würth Mastic PU 40 Plus queda fuera: su tienda oculta el precio tras login.
-  SIKAFLEX_11FC:     ['SOUDAL_SOUDAFLEX_40FC','QUILOSA_PU50','FISCHER_PURFLEX','PENOSIL_TECNOPUR_P40'],
+  // Sikaflex-11FC: comparativa por cartucho (290-310ml) contra estos 5 rivales.
+  SIKAFLEX_11FC:     ['SOUDAL_SOUDAFLEX_40FC','QUILOSA_PU50','FISCHER_PURFLEX','PENOSIL_TECNOPUR_P40','WURTH_MASTIC_PU40'],
   // Sika Boom-180 (manual/cánula). Falta confirmar tienda con precio para Würth.
   SIKABOOM_180:      ['SOUDAL_SOUDAFOAM_CAN','QUILOSA_ORBAFOAM_CAN','FISCHER_PU_MANUAL','CEYS_ESPUMAX','PENOSIL_PU46_MANUAL'],
   // Sika Boom-580 (pistola). Würth PU PurLogic Flex sin tienda con precio público.
@@ -578,16 +489,16 @@ const STORE_URLS = {
   "TiendaReco PenosilPU46Manual":"https://tiendareco.com/ferreteria/productos-quimicos-pinturas-y-drogueria/colas-adhesivos-y-masillas/espuma-poliuretano-pu-46-manual-canula-750-ml-olive",
 };
 
-const PAGE_TITLES={posicion:'Posicionamiento · Sika vs Competencia',resumen:'Resumen Global',comparativa:'Comparativa de Mercado',evolucion:'Evolución de Precios',selladores:'Selladores PU',espumas:'Espumas PU'};
+const PAGE_TITLES={selladores:'Sikaflex 11FC · vs Competencia',espumas:'Espumas PU'};
 
-let allData=[],charts={},evoFilter='all';
+let allData=[],charts={};
 const avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null;
 const lastDate=()=>[...new Set(allData.map(r=>r.date))].sort().pop();
 const todayRows=()=>allData.filter(r=>r.date===lastDate());
 const hist7=p=>{const dates=[...new Set(allData.map(r=>r.date))].sort().slice(-8,-1);const pr=allData.filter(r=>dates.includes(r.date)&&r.product===p).map(r=>r.price);return pr.length?avg(pr):null;};
 const destroy=k=>{if(charts[k]){charts[k].destroy();delete charts[k];}};
 const ptag=p=>`<span class="ptag" style="background:${PCOLORS[p]||'#666'}">${PNAMES[p]||p}</span>`;
-const bchip=b=>`<span class="brand-chip bc-${b}">${b}</span>`;
+const bchip=b=>`<span class="brand-chip bc-${BRAND_SLUG[b]||b}">${b}</span>`;
 const cchip=c=>`<span class="cat-chip cc-${c}">${CATS[c]?.icon||''} ${c}</span>`;
 const diffSpan=(p,ref)=>{if(!ref)return '<span class="d-neu">—</span>';const d=(p-ref)/ref*100;return `<span class="${d<-1?'d-dn':d>1?'d-up':'d-neu'}">${d>=0?'+':''}${d.toFixed(1)}%</span>`;};
 const linkCell=store=>{const u=STORE_URLS[store];return u?`<a class="link-btn" href="${u}" target="_blank">Ver →</a>`:'<span class="link-off">—</span>';};
@@ -641,19 +552,16 @@ function renderDashboard(){
   const last=dates[dates.length-1];
   document.getElementById('dateChip').textContent=last||'—';
   document.getElementById('sbStatusText').textContent=`${last} · ${allData.length} registros`;
-  document.getElementById('evoDays').textContent=`${dates.length} día${dates.length!==1?'s':''} de histórico`;
   ['selladores','espumas'].forEach(c=>{const el=document.getElementById(`${c}Date`);if(el)el.textContent=last;});
   document.getElementById('loading').style.display='none';
   document.getElementById('appContent').style.display='block';
-  buildEvoFilters();
   renderAll();
   setInterval(loadData,30*60*1000);
 }
 
 function renderAll(){
-  renderAlerts();renderKPIs();renderPosMatrix();renderCatCards();renderRanking();
+  renderAlerts();
   Object.keys(CATS).forEach(cat=>renderCatSection(cat));
-  renderCompareBar();renderVsGlobal();renderMarketPos();renderAllLine();renderEvoCharts();
 }
 
 function renderAlerts(){
@@ -667,84 +575,6 @@ function renderAlerts(){
     if(p){const pct=(t.price-p.price)/p.price*100;if(pct>10)alerts.push(`${bchip(PBRANDS[t.product]||'?')} <b>${t.store}</b> subió <b>${PNAMES[t.product]||t.product}</b> un <b>▲${pct.toFixed(1)}%</b>`);}
   });
   document.getElementById('alertsContainer').innerHTML=alerts.map(a=>`<div class="alert"><span class="alert-icon">⚠️</span><span class="alert-text">${a}</span></div>`).join('');
-}
-
-function renderKPIs(){
-  const today=todayRows();
-  const priceOf=p=>{const pr=today.filter(r=>r.product===p).map(r=>r.price);return pr.length?avg(pr):null;};
-  const sA=avg(today.filter(r=>SIKA_P.includes(r.product)).map(r=>r.price));
-  const cA=avg(today.filter(r=>COMP_P.includes(r.product)).map(r=>r.price));
-
-  /* Índice correcto: para cada producto Sika, Δ% frente a la MEDIA de SUS rivales; luego media de esos Δ%. */
-  let deltas=[], winCount=0, cmp=0;
-  SIKA_P.forEach(s=>{
-    if(!RIVALS[s]||!RIVALS[s].length)return;
-    const sP=priceOf(s);if(sP==null)return;
-    const rp=RIVALS[s].map(r=>priceOf(r)).filter(x=>x!=null);
-    if(!rp.length)return;
-    cmp++;
-    deltas.push((sP-avg(rp))/avg(rp)*100);
-    if(sP<=Math.min(...rp))winCount++;
-  });
-  const diff=deltas.length?avg(deltas):null;
-  const dates=[...new Set(allData.map(r=>r.date))].sort();
-  const items=[
-    {label:'Sika vs sus rivales',value:diff!=null?`${diff>=0?'+':''}${diff.toFixed(1)}%`:'—',sub:diff!=null?(diff>0?'de media, Sika más caro':'de media, Sika más barato'):'Sin datos',accent:diff!=null?(diff>0?'#D92B2B':'#0D9148'):'#999',badge:diff!=null?(diff>0?{t:`▲ ${diff.toFixed(1)}%`,c:'badge-up'}:{t:`▼ ${Math.abs(diff).toFixed(1)}%`,c:'badge-dn'}):null},
-    {label:'Productos donde gano',value:cmp?`${winCount}/${cmp}`:'—',sub:'más barato que toda su competencia',accent:'#0D9148',badge:null},
-    {label:'Media Sika hoy',value:sA?`${sA.toFixed(2)}€`:'—',sub:`${today.filter(r=>SIKA_P.includes(r.product)).length} registros`,accent:'#FCC500',badge:null},
-    {label:'Días de histórico',value:dates.length,sub:`${allData.length} reg. · ${[...new Set(allData.map(r=>r.store))].length} tiendas`,accent:'#0A0A0A',badge:null},
-  ];
-  const html=items.map(k=>`
-    <div class="kpi">
-      <div class="kpi-accent" style="background:${k.accent}"></div>
-      <div class="kpi-top">
-        <div class="kpi-label">${k.label}</div>
-        ${k.badge?`<div class="kpi-badge ${k.badge.c}">${k.badge.t}</div>`:''}
-      </div>
-      <div class="kpi-val">${k.value}</div>
-      <div class="kpi-sub">${k.sub}</div>
-    </div>`).join('');
-  ['kpiGrid','posKpiGrid'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=html;});
-}
-
-function renderCatCards(){
-  const today=todayRows();
-  document.getElementById('catCards').innerHTML=Object.entries(CATS).map(([cat,cfg])=>{
-    const sp=today.filter(r=>cfg.sika.includes(r.product)).map(r=>r.price);
-    const cp=today.filter(r=>cfg.comp.includes(r.product)).map(r=>r.price);
-    const sA=sp.length?avg(sp):null,cA=cp.length?avg(cp):null;
-    const diff=sA&&cA?((sA-cA)/cA*100):null;
-    const total=today.filter(r=>[...cfg.sika,...cfg.comp].includes(r.product)).length;
-    return `<div class="cat-card" onclick="showView('${cat.toLowerCase()}')">
-      <div class="cat-card-accent" style="background:${cfg.color}"></div>
-      <div class="cat-card-header">
-        <div class="cat-card-name">${cfg.icon} ${cat}</div>
-        <div class="cat-card-arrow">→</div>
-      </div>
-      <div class="cat-metrics">
-        <div><div class="cat-metric-label">Sika</div><div class="cat-metric-val">${sA?sA.toFixed(2)+'€':'—'}</div></div>
-        <div><div class="cat-metric-label">Competencia</div><div class="cat-metric-val">${cA?cA.toFixed(2)+'€':'—'}</div></div>
-      </div>
-      ${diff!=null?`<div class="cat-diff ${diff>0?'cat-diff-up':'cat-diff-dn'}">${diff>=0?'▲':'▼'} ${Math.abs(diff).toFixed(1)}% Sika ${diff>0?'más caro':'más barato'}</div>`:''}
-      <div class="cat-count">${total} registros hoy · Ver detalle →</div>
-    </div>`;
-  }).join('');
-}
-
-function renderRanking(){
-  const today=todayRows().sort((a,b)=>a.price-b.price);
-  const avgs={};ALL_P.forEach(p=>{const pr=today.filter(r=>r.product===p).map(r=>r.price);avgs[p]=pr.length?avg(pr):0;});
-  document.getElementById('rankingBody').innerHTML=today.slice(0,15).map((r,i)=>`
-    <tr>
-      <td><span class="rank-n ${i<3?`rank-${i+1}`:''}">${i+1}</span></td>
-      <td>${cchip(catOf(r.product))}</td>
-      <td>${bchip(PBRANDS[r.product]||'?')}</td>
-      <td>${ptag(r.product)}</td>
-      <td style="font-weight:500">${r.store}</td>
-      <td><span class="price-val">${r.price.toFixed(2)} €</span></td>
-      <td>${diffSpan(r.price,avgs[r.product])}</td>
-      <td>${linkCell(r.store)}</td>
-    </tr>`).join('');
 }
 
 function renderCatSection(cat){
@@ -820,157 +650,7 @@ function renderBarList(products,containerId,today){
     </div>`).join('')||'<div style="color:var(--s4);font-size:13px">Sin datos hoy</div>';
 }
 
-function renderCompareBar(){
-  const today=todayRows();
-  const prods=ALL_P.filter(p=>today.some(r=>r.product===p));
-  const avgs=prods.map(p=>{const pr=today.filter(r=>r.product===p).map(r=>r.price);return pr.length?+avg(pr).toFixed(2):0;});
-  destroy('compareBar');
-  charts.compareBar=new Chart(document.getElementById('compareBarChart'),{type:'bar',data:{labels:prods.map(p=>PNAMES[p]||p),datasets:[{data:avgs,backgroundColor:prods.map(p=>PCOLORS[p]+'CC'),borderColor:prods.map(p=>PCOLORS[p]),borderWidth:1.5,borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.raw?.toFixed(2)} €`}}},scales:{x:{ticks:{color:'#888',font:{size:9},maxRotation:35,minRotation:20},grid:{display:false}},y:{ticks:{color:'#888',font:{size:9},callback:v=>v+'€'},grid:{color:'rgba(128,128,128,.1)'}}}}});
-}
-
-function renderVsGlobal(){
-  const today=todayRows();
-  Object.entries(CATS).forEach(([cat,cfg])=>{
-    const el=document.getElementById(`vs${cat}`);if(!el)return;
-    el.innerHTML=cfg.sika.map(s=>cfg.comp.map(c=>{
-      const sA=avg(today.filter(r=>r.product===s).map(r=>r.price));
-      const cA=avg(today.filter(r=>r.product===c).map(r=>r.price));
-      const diff=sA&&cA?((sA-cA)/cA*100):null;
-      const col=diff==null?'var(--s4)':diff<0?'var(--green)':'var(--red)';
-      return `<div class="vs-row"><div class="vs-tags">${ptag(s)}<span style="font-size:11px;color:var(--s4)">vs</span>${ptag(c)}</div>
-        <div class="vs-right"><div class="vs-pct" style="color:${col}">${diff!=null?`${diff>=0?'+':''}${diff.toFixed(1)}%`:'—'}</div>
-        <div class="vs-label" style="color:${col}">${diff!=null?(diff<0?'Sika más barato':'Sika más caro'):'Sin datos'}</div></div></div>`;
-    }).join('')).join('');
-  });
-}
-
-function renderMarketPos(){
-  const today=todayRows();
-  const items=ALL_P.map(p=>{const pr=today.filter(r=>r.product===p).map(r=>r.price);return{p,avg:pr.length?avg(pr):null};}).filter(i=>i.avg).sort((a,b)=>a.avg-b.avg);
-  if(!items.length){document.getElementById('marketPos').innerHTML='<div style="color:var(--s4);font-size:13px">Sin datos hoy</div>';return;}
-  const maxA=Math.max(...items.map(i=>i.avg));
-  document.getElementById('marketPos').innerHTML=items.map((item,idx)=>`
-    <div class="mpos-item">
-      <div class="mpos-rank">#${idx+1}</div>
-      <div class="mpos-bar-wrap">
-        <div class="mpos-bar-labels">
-          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">${ptag(item.p)}<span class="mpos-name">${PNAMES[item.p]}</span>${bchip(PBRANDS[item.p]||'?')}${cchip(catOf(item.p))}</div>
-          <span class="mpos-price" style="color:${PCOLORS[item.p]}">${item.avg.toFixed(2)} €</span>
-        </div>
-        <div class="mpos-track"><div class="mpos-fill" style="width:${(item.avg/maxA*100).toFixed(1)}%;background:${PCOLORS[item.p]}"></div></div>
-      </div>
-    </div>`).join('');
-}
-
-function renderPosMatrix(){
-  const today=todayRows();
-  const priceOf=p=>{const pr=today.filter(r=>r.product===p).map(r=>r.price);return pr.length?avg(pr):null;};
-  const el=document.getElementById('posMatrixBody');if(!el)return;
-  let wins=0,loses=0,cmp=0;
-
-  const rows=SIKA_P.filter(s=>RIVALS[s]&&RIVALS[s].length).map(s=>{
-    const sP=priceOf(s);
-    const rivals=RIVALS[s].map(r=>({r,price:priceOf(r)})).filter(x=>x.price!=null);
-    return {s,sP,rivals};
-  });
-
-  const html=rows.map(({s,sP,rivals})=>{
-    if(sP==null)
-      return `<tr><td>${ptag(s)}</td><td colspan="6" style="color:var(--s4)">Sin precio de Sika hoy</td></tr>`;
-    if(!rivals.length)
-      return `<tr><td>${ptag(s)}</td><td><span class="pos-price">${sP.toFixed(2)} €</span></td><td colspan="5" style="color:var(--s4)">Sin datos de rival hoy</td></tr>`;
-
-    cmp++;
-    const prices=rivals.map(x=>x.price);
-    const minR=Math.min(...prices),maxR=Math.max(...prices),avgR=avg(prices);
-    const cheapest=rivals.find(x=>x.price===minR);
-    const dCheap=(sP-minR)/minR*100;
-    const dc=dCheap<0?'var(--green)':dCheap>0?'var(--red)':'var(--s3)';
-
-    let status,scls;
-    if(sP<=minR){status='Más barato que todos';scls='pos-win';wins++;}
-    else if(sP>=maxR){status='Más caro que todos';scls='pos-lose';loses++;}
-    else{status='En rango';scls='pos-mid';}
-
-    // Tendencia del hueco vs media 7 días
-    const sH=hist7(s),rH=avg(RIVALS[s].map(r=>hist7(r)).filter(x=>x));
-    let trend='<span class="pos-trend" style="color:var(--s4)">—</span>';
-    if(sH&&rH){
-      const gapNow=(sP-avgR)/avgR*100, gapPrev=(sH-rH)/rH*100, d=gapNow-gapPrev;
-      trend = Math.abs(d)<0.5
-        ? '<span class="pos-trend" style="color:var(--s4)">▬ igual</span>'
-        : d<0 ? '<span class="pos-trend" style="color:var(--green)">▼ mejora</span>'
-              : '<span class="pos-trend" style="color:var(--red)">▲ empeora</span>';
-    }
-
-    const rivalList=rivals.slice().sort((a,b)=>a.price-b.price).map(x=>{
-      const d=(sP-x.price)/x.price*100, c=d<0?'var(--green)':d>0?'var(--red)':'var(--s3)';
-      return `<span class="pos-rivchip">${PNAMES[x.r]}: <b>${x.price.toFixed(2)}€</b> <span style="color:${c}">(${d>=0?'+':''}${d.toFixed(0)}%)</span></span>`;
-    }).join('');
-
-    return `<tr>
-      <td>${ptag(s)}</td>
-      <td><span class="pos-price">${sP.toFixed(2)} €</span></td>
-      <td><b>${minR.toFixed(2)} €</b><div style="font-size:10px;color:var(--s4)">${PNAMES[cheapest.r]}</div></td>
-      <td><span class="pos-delta" style="color:${dc}">${dCheap>=0?'+':''}${dCheap.toFixed(1)}%</span></td>
-      <td>${avgR.toFixed(2)} €</td>
-      <td><span class="pos-badge ${scls}">${status}</span></td>
-      <td style="text-align:center">${trend}</td>
-    </tr>
-    <tr class="pos-detail"><td></td><td colspan="6">${rivalList}</td></tr>`;
-  }).join('');
-
-  el.innerHTML=html||'<tr><td colspan="7" style="text-align:center;color:var(--s4)">Sin datos hoy</td></tr>';
-  const sum=document.getElementById('posSummary');
-  if(sum)sum.textContent=`${wins} gano · ${loses} pierdo · ${cmp} comparados`;
-}
-
-function renderAllLine(){
-  const dates=[...new Set(allData.map(r=>r.date))].sort();
-  destroy('allLine');
-  charts.allLine=new Chart(document.getElementById('allLineChart'),{type:'line',data:{labels:dates,datasets:ALL_P.map(p=>({
-    label:PNAMES[p],borderColor:PCOLORS[p],borderWidth:SIKA_P.includes(p)?2.5:1.5,
-    borderDash:COMP_P.includes(p)?[6,3]:[],pointRadius:SIKA_P.includes(p)?3:2,
-    fill:false,tension:0.4,spanGaps:true,
-    data:dates.map(d=>{const pr=allData.filter(r=>r.date===d&&r.product===p).map(r=>r.price);return pr.length?+avg(pr).toFixed(2):null;})
-  }))},options:{...CO,plugins:{...CO.plugins,legend:{labels:{color:'#888',font:{size:9,family:'Inter'},boxWidth:8,padding:8}}}}});
-}
-
-function buildEvoFilters(){
-  const el=document.getElementById('evoFilters');
-  el.innerHTML='<span class="evo-label">Filtrar:</span><button class="ef-btn ef-active" id="ef-all" onclick="setEvo(\'all\')" style="border-color:#0A0A0A;background:#0A0A0A;color:#FCC500">Todos</button>'
-    + ALL_P.map(p=>`<button class="ef-btn" id="ef-${p}" onclick="setEvo('${p}')">${PNAMES[p]||p}</button>`).join('');
-}
-
-function renderEvoCharts(){
-  const prods=evoFilter==='all'?ALL_P:[evoFilter];
-  const dates=[...new Set(allData.map(r=>r.date))].sort();
-  destroy('evoLine');destroy('evoBar');
-  charts.evoLine=new Chart(document.getElementById('evoLineChart'),{type:'line',data:{labels:dates,datasets:prods.map(p=>({
-    label:PNAMES[p],borderColor:PCOLORS[p],backgroundColor:PCOLORS[p]+'18',
-    borderWidth:2,pointRadius:3,fill:true,tension:0.4,spanGaps:true,
-    data:dates.map(d=>{const pr=allData.filter(r=>r.date===d&&r.product===p).map(r=>r.price);return pr.length?+avg(pr).toFixed(2):null;})
-  }))},options:CO});
-  const last14=dates.slice(-14);
-  charts.evoBar=new Chart(document.getElementById('evoBarChart'),{type:'bar',data:{labels:last14,datasets:prods.map(p=>({
-    label:PNAMES[p],backgroundColor:PCOLORS[p]+'CC',borderColor:PCOLORS[p],borderWidth:1,borderRadius:5,
-    data:last14.map(d=>{const pr=allData.filter(r=>r.date===d&&r.product===p).map(r=>r.price);return pr.length?+avg(pr).toFixed(2):null;})
-  }))},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#888',font:{size:10,family:'Inter'},boxWidth:10,padding:8}}},scales:{x:{ticks:{color:'#888',font:{size:9}},grid:{color:'rgba(128,128,128,.1)'}},y:{ticks:{color:'#888',font:{size:9},callback:v=>v+'€'},grid:{color:'rgba(128,128,128,.1)'}}}}});
-}
-
-function setEvo(p){
-  evoFilter=p;
-  document.querySelectorAll('.ef-btn').forEach(b=>{b.classList.remove('ef-active');b.style.background='';b.style.borderColor='';b.style.color='';});
-  const btn=document.getElementById(`ef-${p}`);
-  if(btn){
-    btn.classList.add('ef-active');
-    if(p==='all'){btn.style.background='#0A0A0A';btn.style.borderColor='#0A0A0A';btn.style.color='#FCC500';}
-    else{const c=PCOLORS[p]||'#555';btn.style.background=c;btn.style.borderColor=c;btn.style.color='#fff';}
-  }
-  renderEvoCharts();
-}
-
-const VIEWS=['posicion','resumen','comparativa','evolucion','selladores','espumas'];
+const VIEWS=['selladores','espumas'];
 function showView(v){
   document.getElementById('pageTitle').textContent=PAGE_TITLES[v]||v;
   VIEWS.forEach(x=>{
@@ -979,10 +659,7 @@ function showView(v){
     const nav=document.getElementById(`nav-${x}`);
     if(nav)nav.classList.toggle('active',x===v);
   });
-  if(v==='posicion'){renderPosMatrix();}
-  if(v==='comparativa'){renderCompareBar();renderAllLine();}
-  if(v==='evolucion'){renderEvoCharts();}
-  if(['selladores','espumas'].includes(v)){renderCatSection(v.charAt(0).toUpperCase()+v.slice(1));}
+  renderCatSection(v.charAt(0).toUpperCase()+v.slice(1));
 }
 
 /* Global table search */
@@ -999,8 +676,8 @@ function toggleTheme(){
   document.documentElement.setAttribute('data-theme',cur==='dark'?'':'dark');
 }
 
-/* Initialize views (hide all except posicion) */
-VIEWS.forEach(v=>{const el=document.getElementById(`view-${v}`);if(el&&v!=='posicion')el.style.display='none';});
+/* Initialize views (hide all except selladores) */
+VIEWS.forEach(v=>{const el=document.getElementById(`view-${v}`);if(el&&v!=='selladores')el.style.display='none';});
 
 loadData();
 </script>
