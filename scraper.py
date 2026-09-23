@@ -50,8 +50,12 @@ PRICE_RANGES = {
     "SOUDAL_SOUDASEAL":     (4, 25),
     "MAPEI_PU45":           (4, 25),
     "SOUDAL_SOUDAFLEX_40FC":(3, 20),   # rival Sikaflex-11FC (cartucho 300ml, Leroy Merlin lo etiqueta "450")
-    "QUILOSA_PU50":         (3, 20),   # rival Sikaflex-11FC
-    "FISCHER_PURFLEX":      (5, 25),   # rival Sikaflex-11FC (310ml)
+    # QUILOSA_PU50: en ManoMano (única fuente online encontrada con precio público) el
+    # cartucho blanco de 300ml se vende de verdad a ~50€ (producto de nicho, poca
+    # distribución en España, revendedor con margen alto). No es un precio erróneo:
+    # ampliamos el rango para que deje de descartarse. 2026-09-23, decisión cliente.
+    "QUILOSA_PU50":         (3, 60),   # rival Sikaflex-11FC
+    "FISCHER_PURFLEX":      (5, 25),   # rival Sikaflex-11FC (310ml) — pendiente URL fiable
     "PENOSIL_TECNOPUR_P40": (4, 20),   # rival Sikaflex-11FC (equivalente a "PU-40 FC" de Penosil)
     # --- Espumas (SOLO formato 750 ml) ---
     "SIKABOOM_180":         (4, 20),
@@ -232,12 +236,17 @@ STORES = [
         "selectors": ["[itemprop='price']", ".price", ".product-price"],
     },
     {
+        # Precio real ~50€: producto de nicho con poca distribución en España, no un
+        # error de scraping. Rango ampliado a (3, 60) en PRICE_RANGES (ver arriba).
         "store": "ManoMano QuilosaPU50",
         "url": "https://www.manomano.es/p/sintex-pu-50-alto-cr300-blanco-45609-643596",
         "product": "QUILOSA_PU50", "brand": "Quilosa", "category": "Selladores",
         "selectors": ["[itemprop='price']", ".price"],
     },
     {
+        # REV: ManoMano marca este anuncio como agotado y con precio anómalo (120€+).
+        # Se mantiene en el listado para que el informe de diagnóstico lo señale, pero
+        # no aportará dato mientras no se sustituya por una URL con stock/precio real.
         "store": "ManoMano FischerPurflex",
         "url": "https://www.manomano.es/p/masilla-poliuretano-blanco-bote-310ml-1907217",
         "product": "FISCHER_PURFLEX", "brand": "Fischer", "category": "Selladores",
