@@ -92,13 +92,15 @@ PRICE_RANGES = {
     "FISCHER_PUP_PISTOLA":  (3, 25),   # rival Boom-580
     "FISCHER_PU_MANUAL":    (3, 22),   # rival Boom-180
     "FISCHER_PU_TEJAS":     (3, 22),   # rival Boom-584
-    "CEYS_ESPUMAX_PISTOLA": (4, 22),   # Ceys Espumax Aislar y Rellenar Pistola 750 ml
-    "CEYS_ESPUMAX_MANUAL":  (4, 22),   # Ceys Espumax Aislar y Rellenar Cánula 750 ml
-    "CEYS_ESPUMAX_TEJAS":   (4, 22),   # Ceys Espumax Fijar y Montar Tejas Cánula 750 ml
-    "WURTH_PURLOGIC_FLEX":  (5, 30),   # Würth PurLogic Flex 750 ml
-    "WURTH_PU_TEJAS":       (4, 30),   # Würth PURLOGIC DUO Adhesivo Tejas 750 ml
-    "PENOSIL_PU49":          (4, 20),   # Penosil PU-49 Tejas Pistola 750 ml
-    "PENOSIL_EASYGUN_PU45":  (5, 22),   # Penosil Mega EasyGun PU-45 750 ml
+    "CEYS_ESPUMAX":         (4, 22),   # compatibilidad con datos antiguos
+    # --- Nuevas referencias separadas (SOLO 750 ml) ---
+    "CEYS_ESPUMAX_PISTOLA": (4, 22),
+    "CEYS_ESPUMAX_MANUAL":  (4, 22),
+    "CEYS_ESPUMAX_TEJAS":   (4, 22),
+    "WURTH_PURLOGIC_FLEX":  (5, 30),
+    "WURTH_PU_TEJAS":       (4, 30),
+    "PENOSIL_PU49":          (4, 20),
+    "PENOSIL_EASYGUN_PU45": (5, 22),
 }
 
 # ---------------------------------------------------------------------------
@@ -168,6 +170,13 @@ STORES = [
         "url": "https://www.ferrokey.eu/espuma-poliuretano-sikaboom-180-canula-750-ml",
         "product": "SIKABOOM_180", "brand": "Sika", "category": "Espumas",
         "selectors": [".product-info-price .price", "[itemprop='price']", ".price"],
+    },
+    # Copia de seguridad para Boom-180: BAUHAUS 750 ml.
+    {
+        "store": "BAUHAUS SikaBoom180",
+        "url": "https://www.bauhaus.es/espumas-de-construccion/sika-espuma-de-montaje-sikaboom-180/p/31473268",
+        "product": "SIKABOOM_180", "brand": "Sika", "category": "Espumas",
+        "selectors": ["[itemprop='price']", ".price", ".product-price"],
     },
 
     # --- Sika Boom 580 (pistola) ---  OK URL nueva VERIFICADA (paramireforma, PrestaShop)
@@ -395,7 +404,7 @@ STORES = [
         "product": "FISCHER_PU_TEJAS", "brand": "Fischer", "category": "Espumas",
         "selectors": [".price", "[itemprop='price']"],
     },
-    # Ceys Espumax Aislar y Rellenar: separar PISTOLA y MANUAL, ambos 750 ml.
+    # Ceys Aislar y Rellenar separados por aplicación (750 ml).
     {
         "store": "GrupoIncera CeysEspumaxPistola",
         "url": "https://www.grupoincera.com/shop/ceys-085-espumax-pistola-aislar-y-rellenar-750-ml-ref-504803-47364",
@@ -407,6 +416,13 @@ STORES = [
         "url": "https://www.grupoincera.com/shop/ceys-068-espumax-manual-aislar-y-rellenar-750-ml-ref-504802-47362",
         "product": "CEYS_ESPUMAX_MANUAL", "brand": "Ceys", "category": "Espumas",
         "selectors": ["[itemprop='price']", ".price", ".oe_price"],
+    },
+
+    {
+        "store": "ManoMano CeysEspumax",
+        "url": "https://www.manomano.es/p/espuma-poliuretano-aislar-y-rellenar-750ml-37597090",
+        "product": "CEYS_ESPUMAX", "brand": "Ceys", "category": "Espumas",
+        "selectors": ["[itemprop='price']", ".price"],
     },
     {
         "store": "ManoMano PenosilPU46Pistola",
@@ -420,8 +436,7 @@ STORES = [
         "product": "PENOSIL_PU46_MANUAL", "brand": "Penosil", "category": "Espumas",
         "selectors": [".price", "[itemprop='price']"],
     },
-    # ---------- Fuentes añadidas para completar las comparativas 750 ml ----------
-    # Würth PurLogic Flex 750 ml — página oficial Würth España.
+    # ---------- Nuevas fuentes para completar las comparativas 750 ml ----------
     {
         "store": "Wurth PurLogicFlex",
         "url": "https://www.wurth.es/espuma-pu-purlogic-flex-750ml",
@@ -429,29 +444,26 @@ STORES = [
         "selectors": ["[itemprop='price']", ".price", ".product-price"],
         "strict": True,
     },
-    # Penosil PU-49 Tejas Pistola 750 ml — fuente oficial Penosil España.
     {
         "store": "Penosil PU49 Pistola",
         "url": "https://penosil.com/es/producto/espuma-tejas-pistola-pu-49p-para-pegar-tejas/",
         "product": "PENOSIL_PU49", "brand": "Penosil", "category": "Espumas",
+        "text_regex": r"(\d+[.,]\d{2})\s*€\s*/\s*ud",
         "selectors": ["[itemprop='price']", ".price", ".product-price"],
     },
-    # Penosil Mega EasyGun PU-45 750 ml — fuente oficial Penosil España.
     {
         "store": "Penosil EasyGun PU45",
         "url": "https://penosil.com/es/producto/espuma-mega-easygun-pu-45-alto-rendimiento-2-en-1/",
         "product": "PENOSIL_EASYGUN_PU45", "brand": "Penosil", "category": "Espumas",
+        "text_regex": r"(\d+[.,]\d{2})\s*€\s*/\s*ud",
         "selectors": ["[itemprop='price']", ".price", ".product-price"],
     },
-    # Quilosa Orbafoam Pro Tejas 750 ml — Leroy Merlin.
     {
         "store": "LeroyMerlin Orbafoam Tejas",
         "url": "https://www.leroymerlin.es/productos/espuma-poliuretano-orbafoam-tejas-750ml-84406744.html",
         "product": "QUILOSA_ORBAFOAM_TEJ", "brand": "Quilosa", "category": "Espumas",
         "selectors": ["[itemprop='price']", ".price", ".product-price"],
     },
-    # Würth PURLOGIC DUO Adhesivo Tejas 750 ml — producto oficial de Würth España.
-    # Se usa como la referencia Würth de espuma/adhesivo para tejas solicitada.
     {
         "store": "Wurth PurLogic Duo Tejas",
         "url": "https://www.wurth.es/purlogic-duo-adhesivo-tejas-750-ml",
@@ -459,7 +471,6 @@ STORES = [
         "selectors": ["[itemprop='price']", ".price", ".product-price"],
         "strict": True,
     },
-    # Ceys Espumax Fijar y Montar Tejas Cánula 750 ml.
     {
         "store": "SuministrosCallosa CeysEspumaxTejas",
         "url": "https://suministroscallosa.com/espuma-de-poliuretano-para-tejas-espumax/",
