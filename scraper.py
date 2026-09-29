@@ -18,6 +18,16 @@ Novedades de esta versión
    al instante en el log de GitHub Actions en vez de que el producto desaparezca
    en silencio de la web.
 
+3) REGLAS OPCIONALES POR ENTRADA (nuevo, 2026-09-29). Una entrada de STORES puede
+   llevar, además de "selectors":
+       "text_regex": regex sobre el texto visible de la página; el grupo 1 es el
+                     precio. Se prueba ANTES que los métodos genéricos. Sirve para
+                     tiendas sin JSON-LD ni meta de precio, y para elegir el precio
+                     CON IVA cuando la página muestra los dos.
+       "strict":     True → no se usa el último recurso (d). Si el método específico
+                     falla, la tienda sale como "sin precio" en el informe en vez de
+                     guardar un número cualquiera de la página (p. ej. el precio sin IVA).
+
 Formato de salida (idéntico al anterior, no rompe main.py/database.py):
    scrape_all() -> lista de dicts {store, product, brand, category, price}
 """
@@ -54,9 +64,13 @@ PRICE_RANGES = {
     # cartucho blanco de 300ml se vende de verdad a ~50€ (producto de nicho, poca
     # distribución en España, revendedor con margen alto). No es un precio erróneo:
     # ampliamos el rango para que deje de descartarse. 2026-09-23, decisión cliente.
+    # 2026-09-29: Barral vende el mismo cartucho a 4,25 € (IVA incl.), así que los ~50 €
+    # de ManoMano son de un revendedor caro y no el precio de mercado. Valorar dejar de
+    # rastrear ManoMano o bajar el máximo del rango.
     "QUILOSA_PU50":         (3, 60),   # rival Sikaflex-11FC
-    "FISCHER_PURFLEX":      (5, 25),   # rival Sikaflex-11FC (310ml) — pendiente URL fiable
+    "FISCHER_PURFLEX":      (4, 25),   # rival Sikaflex-11FC (310ml). Antes (5, 25): Rationalstock llegó a 4,81 € con IVA
     "PENOSIL_TECNOPUR_P40": (4, 20),   # rival Sikaflex-11FC (equivalente a "PU-40 FC" de Penosil)
+    "WURTH_PU40_PLUS":      (4, 25),   # rival Sikaflex-11FC (solo se usa si activas el bloque de Airtech más abajo)
     # --- Espumas (SOLO formato 750 ml) ---
     "SIKABOOM_180":         (4, 20),
     "SIKABOOM_580":         (5, 22),
@@ -247,6 +261,7 @@ STORES = [
         # REV: ManoMano marca este anuncio como agotado y con precio anómalo (120€+).
         # Se mantiene en el listado para que el informe de diagnóstico lo señale, pero
         # no aportará dato mientras no se sustituya por una URL con stock/precio real.
+        # (2026-09-29: ya hay una fuente fiable para este producto: Rationalstock, más abajo.)
         "store": "ManoMano FischerPurflex",
         "url": "https://www.manomano.es/p/masilla-poliuretano-blanco-bote-310ml-1907217",
         "product": "FISCHER_PURFLEX", "brand": "Fischer", "category": "Selladores",
@@ -259,8 +274,83 @@ STORES = [
         "product": "PENOSIL_TECNOPUR_P40", "brand": "Penosil", "category": "Selladores",
         "selectors": ["[itemprop='price']", ".price", "#our_price_display"],
     },
+
+    # ---------- NUEVAS FUENTES (2026-09-29) ----------
+    # Verificadas a mano: el precio aparece en el HTML sin login ni JavaScript.
+    # OJO: robots.txt y términos de uso NO se han revisado; míralos antes de dejarlas
+    # en producción. "strict": True evita que el último recurso (d) guarde el precio
+    # sin IVA o el de otra variante como si fuera bueno.
+    {
+        # PrestaShop. Publica product:price:amount (4,25 € con IVA) y también
+        # product:pretax_price:amount (3,51 € SIN IVA, y cae dentro del rango) → strict.
+        "store": "Barral QuilosaPU50",
+        "url": "https://www.barral.com/sellados/sintex-pu-50-300-ml-quilosa",
+        "product": "QUILOSA_PU50", "brand": "Quilosa", "category": "Selladores",
+        "selectors": ["[itemprop='price']", ".current-price .price", ".price"],
+        "strict": True,
+    },
+    {
+        # Sin meta de precio. La tabla "Medidas disponibles" muestra
+        # "4,3880 € 5,3095 € Iva incl." (sin IVA / con IVA): la regex coge el 2.º.
+        # Blanco y gris de 310 ml cuestan lo mismo.
+        "store": "Rationalstock FischerPurflex",
+        "url": "https://www.rationalstock.es/catalogo/producto/fijacion/siliconas-y-selladores/selladores-para-materiales-porosos/sellador-de-poliuretano-fischer-purflex/20101000009",
+        "product": "FISCHER_PURFLEX", "brand": "Fischer", "category": "Selladores",
+        "text_regex": r"[\d.,]+\s*€\s*([\d.,]+)\s*€\s*Iva incl",
+        "selectors": [],
+        "strict": True,
+    },
+    {
+        # PrestaShop. meta product:price:amount = 6,99 € (con IVA); el pretax (5,78 €)
+        # también está en rango → strict. AGOTADO el 2026-09-29: el scraper no mira
+        # stock, así que guardará el precio de lista aunque no haya unidades.
+        "store": "BTIngenieros Soudaflex40FC",
+        "url": "https://www.bt-ingenieros.com/adhesivos-y-selladores/6784-masilla-de-poliuretano-soudalflex-40fc-cartucho-300-ml-negro.html",
+        "product": "SOUDAL_SOUDAFLEX_40FC", "brand": "Soudal", "category": "Selladores",
+        "selectors": ["[itemprop='price']", ".current-price .price", ".price"],
+        "strict": True,
+    },
+    {
+        # Está listado como "Olivé PU-40 FC" (nombre anterior de Penosil en España).
+        # Sin meta de precio: la tabla "Referencias disponibles" muestra
+        # "Precio: 8,35€ 10,10€ Iva incluido" (sin IVA / con IVA); la regex coge el 2.º.
+        # Blanco y marrón de 300 ml cuestan lo mismo.
+        "store": "Boiract PenosilPU40FC",
+        "url": "https://boiract.com/es/tienda/masilla-de-poliuretano-olive-pu-40-fc/1406",
+        "product": "PENOSIL_TECNOPUR_P40", "brand": "Penosil", "category": "Selladores",
+        "text_regex": r"[\d.,]+\s*€\s*([\d.,]+)\s*€\s*Iva incluido",
+        "selectors": [],
+        "strict": True,
+    },
+
+    # ---------- DESACTIVADAS (descomenta si te encajan) ----------
+    # Combifit (NL), Soudaflex 40 FC 310 ml color madera. Precio en tabla de texto:
+    # "1x €5.65". No sé si el precio lleva IVA ni si envía a España, y el resto del
+    # monitor compara tiendas españolas.
+    # {
+    #     "store": "Combifit Soudaflex40FC",
+    #     "url": "https://www.combifit.nl/en/soudal-soudaflex-40-fc-310-ml",
+    #     "product": "SOUDAL_SOUDAFLEX_40FC", "brand": "Soudal", "category": "Selladores",
+    #     "text_regex": r"1x\s*€\s*([\d.,]+)",
+    #     "selectors": [],
+    #     "strict": True,
+    # },
+    #
+    # Airtech Online (FR), Würth Mastic PU 40 Plus blanco 300 ml. Tienda profesional
+    # francesa: la página muestra 6,50 € HT y la meta product:price:amount 7,80 € (IVA
+    # francés del 20 %). No es comparable con precios con IVA español (21 % → 7,87 €).
+    # Es el único sitio que encontré con precio público de este producto.
+    # {
+    #     "store": "Airtech WurthPU40Plus",
+    #     "url": "https://airtech-online.com/produit/mastic-colle-et-etanche-polyurethane-pu-40-plus-blanc-0892211300-wurth/",
+    #     "product": "WURTH_PU40_PLUS", "brand": "Würth", "category": "Selladores",
+    #     "selectors": [],
+    #     "strict": True,
+    # },
+
     # Nota: Würth Mastic PU 40 Plus queda FUERA del rastreo (wurth.es oculta el precio
-    # hasta iniciar sesión; no se encontró distribuidor con precio público).
+    # hasta iniciar sesión; el único candidato con precio público es Airtech, arriba,
+    # desactivado por la diferencia de IVA).
 
     # --- Espumas 750ml: rivales de Boom-580 (pistola), Boom-180 (manual) y Boom-584 (tejas) ---
     {
@@ -335,7 +425,8 @@ def _parse_price(text):
     if text is None:
         return None
     text = str(text)
-    m = re.search(r"(\d{1,3}(?:[.\s]\d{3})*,\d{2}|\d+[.,]\d{2}|\d+)", text)
+    # ,\d{2,4}: acepta también "5,3095" (algunas tiendas muestran 4 decimales)
+    m = re.search(r"(\d{1,3}(?:[.\s]\d{3})*,\d{2,4}|\d+[.,]\d{2}|\d+)", text)
     if not m:
         return None
     token = m.group(1)
@@ -387,6 +478,16 @@ def _extract_price(entry, soup, html):
     """Devuelve (precio, metodo) probando varias estrategias en orden de fiabilidad."""
     product = entry["product"]
 
+    # 0) regla explícita de la entrada: regex sobre el texto visible (grupo 1 = precio)
+    rx = entry.get("text_regex")
+    if rx:
+        text = re.sub(r"\s+", " ", soup.get_text(" ", strip=True))
+        m = re.search(rx, text)
+        if m:
+            p = _parse_price(m.group(1))
+            if _in_range(product, p):
+                return p, "regex"
+
     # a) JSON-LD
     for p in _iter_jsonld_prices(soup):
         if _in_range(product, p):
@@ -413,10 +514,12 @@ def _extract_price(entry, soup, html):
                 return p, f"css:{sel}"
 
     # d) último recurso: menor precio dentro de rango en toda la página
-    candidates = [_parse_price(tok) for tok in re.findall(r"\d+[.,]\d{2}", html)]
-    candidates = [c for c in candidates if _in_range(product, c)]
-    if candidates:
-        return min(candidates), "fallback-min"
+    #    (se omite en entradas "strict": ahí es preferible "sin precio" a un número dudoso)
+    if not entry.get("strict"):
+        candidates = [_parse_price(tok) for tok in re.findall(r"\d+[.,]\d{2}", html)]
+        candidates = [c for c in candidates if _in_range(product, c)]
+        if candidates:
+            return min(candidates), "fallback-min"
 
     return None, "sin-precio"
 
