@@ -264,7 +264,10 @@ tbody tr:hover td{background:var(--s7);}
   </div>
   <nav class="topbar-nav">
     <div class="nav-item active" onclick="showView('selladores')" id="nav-selladores"><div class="ni-dot" style="background:var(--cat-sel)"></div>🧴 Sikaflex 11FC</div>
-    <div class="nav-item" onclick="showView('espumas')" id="nav-espumas"><div class="ni-dot" style="background:var(--cat-esp)"></div>🧯 Espumas PU</div>
+    <div class="nav-item" onclick="showView('boom580')" id="nav-boom580"><div class="ni-dot" style="background:#FCC500"></div>Sika Boom-580</div>
+    <div class="nav-item" onclick="showView('boom180')" id="nav-boom180"><div class="ni-dot" style="background:#FCC500"></div>Sika Boom-180</div>
+    <div class="nav-item" onclick="showView('boom584')" id="nav-boom584"><div class="ni-dot" style="background:#B88F00"></div>Sika Boom-584</div>
+    <div class="nav-item" onclick="showView('boom151')" id="nav-boom151"><div class="ni-dot" style="background:#FCC500"></div>Sika Boom-151</div>
   </nav>
 </div>
 
@@ -320,15 +323,15 @@ tbody tr:hover td{background:var(--s7);}
       </div>
     </div>
 
-    <!-- ═══ ESPUMAS ═══ -->
+    <!-- ═══ ESPUMAS PU · PRODUCTO SELECCIONADO ═══ -->
     <div class="view" id="view-espumas">
       <div class="section-header">
-        <div class="sec-badge" style="background:var(--cat-esp);color:#fff">🧯 Espumas PU</div>
+        <div class="sec-badge" id="espumasSectionBadge" style="background:var(--cat-esp);color:#fff">🧯 Sika Boom</div>
         <div class="sec-line"></div>
       </div>
       <div class="grid-2">
         <div class="card" style="border-top:3px solid var(--cat-esp)">
-          <div class="card-header"><span class="card-title">🟡 Sika · Media hoy</span></div>
+          <div class="card-header"><span class="card-title" id="espumasSikaTitle">🟡 Sika · Media hoy</span></div>
           <div class="bar-list" id="espumasSikaBars"></div>
         </div>
         <div class="card">
@@ -338,7 +341,7 @@ tbody tr:hover td{background:var(--s7);}
       </div>
       <div class="card">
         <div class="card-header">
-          <span class="card-title">Precios por tienda</span>
+          <span class="card-title" id="espumasTableTitle">Precios por tienda</span>
           <div class="card-actions"><span class="card-meta" id="espumasDate">—</span></div>
         </div>
         <div class="tbl-wrap">
@@ -348,7 +351,7 @@ tbody tr:hover td{background:var(--s7);}
       </div>
       <div class="grid-2">
         <div class="card">
-          <div class="card-header"><span class="card-title">Sika vs Competencia</span></div>
+          <div class="card-header"><span class="card-title" id="espumasVsTitle">Sika vs Competencia</span></div>
           <div id="espumasVs"></div>
         </div>
         <div class="card">
@@ -489,7 +492,20 @@ const STORE_URLS = {
   "TiendaReco PenosilPU46Manual":"https://tiendareco.com/ferreteria/productos-quimicos-pinturas-y-drogueria/colas-adhesivos-y-masillas/espuma-poliuretano-pu-46-manual-canula-750-ml-olive",
 };
 
-const PAGE_TITLES={selladores:'Sikaflex 11FC · vs Competencia',espumas:'Espumas PU'};
+const PAGE_TITLES={
+  selladores:'Sikaflex 11FC · vs Competencia',
+  boom580:'Sika Boom-580 · vs Competencia',
+  boom180:'Sika Boom-180 · vs Competencia',
+  boom584:'Sika Boom-584 · vs Competencia',
+  boom151:'Sika Boom-151 · vs Competencia'
+};
+
+const BOOM_VIEWS = {
+  boom580:'SIKABOOM_580',
+  boom180:'SIKABOOM_180',
+  boom584:'SIKABOOM_584',
+  boom151:'SIKABOOM_151'
+};
 
 let allData=[],charts={};
 const avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null;
@@ -561,7 +577,9 @@ function renderDashboard(){
 
 function renderAll(){
   renderAlerts();
-  Object.keys(CATS).forEach(cat=>renderCatSection(cat));
+  renderCatSection('Selladores');
+  const selected=BOOM_VIEWS[window.currentBoomView]||'SIKABOOM_580';
+  renderBoomSection(selected);
 }
 
 function renderAlerts(){
@@ -627,6 +645,90 @@ function renderCatSection(cat){
   }
 }
 
+
+function renderBoomSection(product){
+  const last=lastDate();
+  const dates=[...new Set(allData.map(r=>r.date))].sort();
+  const rivals=RIVALS[product]||[];
+  const products=[product,...rivals];
+  const today=allData.filter(r=>r.date===last&&products.includes(r.product));
+  const name=PNAMES[product]||product;
+  const color=PCOLORS[product]||'var(--cat-esp)';
+
+  const badge=document.getElementById('espumasSectionBadge');
+  if(badge){ badge.textContent=`🧯 ${name}`; badge.style.background=color; }
+
+  const sikaTitle=document.getElementById('espumasSikaTitle');
+  if(sikaTitle)sikaTitle.textContent=`🟡 ${name} · Media hoy`;
+
+  const tableTitle=document.getElementById('espumasTableTitle');
+  if(tableTitle)tableTitle.textContent=`Precios por tienda · ${name}`;
+
+  const vsTitle=document.getElementById('espumasVsTitle');
+  if(vsTitle)vsTitle.textContent=`${name} vs Competencia`;
+
+  renderBarList([product],'espumasSikaBars',today);
+  renderBarList(rivals,'espumasCompBars',today);
+
+  const tbody=document.getElementById('espumasTableBody');
+  if(tbody){
+    tbody.innerHTML=today.sort((a,b)=>a.price-b.price).map(r=>`
+      <tr>
+        <td>${bchip(PBRANDS[r.product]||'?')}</td>
+        <td>${ptag(r.product)}</td>
+        <td style="font-weight:500">${r.store}</td>
+        <td><span class="price-val">${r.price.toFixed(2)} €</span></td>
+        <td style="font-family:var(--font-mono);font-size:12px;color:var(--s4)">${hist7(r.product)?hist7(r.product).toFixed(2)+' €':'—'}</td>
+        <td>${diffSpan(r.price,hist7(r.product))}</td>
+        <td>${linkCell(r.store)}</td>
+      </tr>`).join('') || '<tr><td colspan="7" style="text-align:center;color:var(--s4)">Sin datos hoy</td></tr>';
+  }
+
+  const vsEl=document.getElementById('espumasVs');
+  if(vsEl){
+    vsEl.innerHTML=rivals.map(c=>{
+      const sA=avg(today.filter(r=>r.product===product).map(r=>r.price));
+      const cA=avg(today.filter(r=>r.product===c).map(r=>r.price));
+      const diff=sA&&cA?((sA-cA)/cA*100):null;
+      const col=diff==null?'var(--s4)':diff<0?'var(--green)':'var(--red)';
+      return `<div class="vs-row">
+        <div class="vs-tags">${ptag(product)}<span style="font-size:11px;color:var(--s4)">vs</span>${ptag(c)}</div>
+        <div class="vs-right">
+          <div class="vs-pct" style="color:${col}">${diff!=null?`${diff>=0?'+':''}${diff.toFixed(1)}%`:'—'}</div>
+          <div class="vs-label" style="color:${col}">${diff!=null?(diff<0?'Sika más barato':'Sika más caro'):'Sin datos'}</div>
+        </div>
+      </div>`;
+    }).join('') || '<div style="color:var(--s4);font-size:13px;padding:12px 0">No hay rivales configurados para este producto.</div>';
+  }
+
+  const chartEl=document.getElementById('espumasLine');
+  if(chartEl){
+    destroy('espumasLine');
+    charts.espumasLine=new Chart(chartEl,{
+      type:'line',
+      data:{
+        labels:dates,
+        datasets:products.map(p=>({
+          label:PNAMES[p],
+          borderColor:PCOLORS[p]||'#666',
+          backgroundColor:(PCOLORS[p]||'#666')+'18',
+          borderWidth:p===product?2.5:1.5,
+          borderDash:p===product?[]:[5,3],
+          pointRadius:3,
+          fill:false,
+          tension:0.4,
+          spanGaps:true,
+          data:dates.map(d=>{
+            const pr=allData.filter(r=>r.date===d&&r.product===p).map(r=>r.price);
+            return pr.length?+avg(pr).toFixed(2):null;
+          })
+        }))
+      },
+      options:CO
+    });
+  }
+}
+
 function renderBarList(products,containerId,today){
   if(!today)today=todayRows();
   const items=products.map(p=>{
@@ -650,16 +752,34 @@ function renderBarList(products,containerId,today){
     </div>`).join('')||'<div style="color:var(--s4);font-size:13px">Sin datos hoy</div>';
 }
 
-const VIEWS=['selladores','espumas'];
+const VIEWS=['selladores','boom580','boom180','boom584','boom151'];
+window.currentBoomView='boom580';
+
 function showView(v){
   document.getElementById('pageTitle').textContent=PAGE_TITLES[v]||v;
+  const isSelladores=v==='selladores';
+
+  const selladoresEl=document.getElementById('view-selladores');
+  const espumasEl=document.getElementById('view-espumas');
+
+  if(selladoresEl){
+    selladoresEl.classList.toggle('active',isSelladores);
+    selladoresEl.style.display=isSelladores?'block':'none';
+  }
+  if(espumasEl){
+    espumasEl.classList.toggle('active',!isSelladores);
+    espumasEl.style.display=isSelladores?'none':'block';
+  }
+
   VIEWS.forEach(x=>{
-    const el=document.getElementById(`view-${x}`);
-    if(el){el.classList.toggle('active',x===v);el.style.display=x===v?'block':'none';}
     const nav=document.getElementById(`nav-${x}`);
     if(nav)nav.classList.toggle('active',x===v);
   });
-  renderCatSection(v.charAt(0).toUpperCase()+v.slice(1));
+
+  if(!isSelladores){
+    window.currentBoomView=v;
+    renderBoomSection(BOOM_VIEWS[v]);
+  }
 }
 
 /* Global table search */
@@ -676,8 +796,9 @@ function toggleTheme(){
   document.documentElement.setAttribute('data-theme',cur==='dark'?'':'dark');
 }
 
-/* Initialize views (hide all except selladores) */
-VIEWS.forEach(v=>{const el=document.getElementById(`view-${v}`);if(el&&v!=='selladores')el.style.display='none';});
+/* Initialize views (hide Espumas until a product tab is selected) */
+document.getElementById('view-espumas').style.display='none';
+document.getElementById('view-selladores').style.display='block';
 
 loadData();
 </script>
