@@ -326,7 +326,7 @@ tbody tr:hover td{background:var(--s7);}
     <!-- ═══ ESPUMAS PU · PRODUCTO SELECCIONADO ═══ -->
     <div class="view" id="view-espumas">
       <div class="section-header">
-        <div class="sec-badge" id="espumasSectionBadge" style="background:var(--cat-esp);color:#fff">🧯 Sika Boom</div>
+        <div class="sec-badge" id="espumasSectionBadge" style="background:var(--cat-esp);color:#fff">🧯 Sika Boom</div><span class="card-meta">Comparativas: 750 ml</span>
         <div class="sec-line"></div>
       </div>
       <div class="grid-2">
@@ -385,8 +385,15 @@ const PNAMES = {
   SIKABOOM_180:"Sika Boom-180 (cánula)", SIKABOOM_580:"Sika Boom-580 (pistola)",
   SIKABOOM_151:"Sika Boom-151 Multiposition", SIKABOOM_582:"Sika Boom-582 (tejas)",
   SIKABOOM_584:"Sika Boom-584 (tejas)", SIKABOOM_420_FIRE:"Sika Boom-420 Fire",
+  WURTH_PURLOGIC_FLEX:"Würth PU PurLogic Flex",
+  WURTH_PU_TEJAS:"Würth Espuma PU Tejas",
+  PENOSIL_PU49:"Penosil PU-49",
+  PENOSIL_EASYGUN_PU45:"Penosil EasyGun PU 45",
+  CEYS_ESPUMAX_PISTOLA:"Ceys Espumax Aislar y Rellenar Pistola",
+  CEYS_ESPUMAX_MANUAL:"Ceys Espumax Aislar y Rellenar Manual",
+  CEYS_ESPUMAX_TEJAS:"Ceys Espumax Tejas Cánula",
   QUILOSA_ORBAFOAM_CAN:"Quilosa Orbafoam (cánula)", QUILOSA_ORBAFOAM_PIS:"Quilosa Orbafoam (pistola)",
-  QUILOSA_ORBAFOAM_TEJ:"Quilosa Orbafoam (tejas)", QUILOSA_FIRESTOP:"Quilosa Fire Stop",
+  QUILOSA_ORBAFOAM_TEJ:"Quilosa Orbafoam Tejas 750 ml", QUILOSA_FIRESTOP:"Quilosa Fire Stop",
   SOUDAL_SOUDAFOAM_CAN:"Soudal Profoam (manual)", SOUDAL_SOUDAFOAM_PIS:"Soudal Profoam (pistola)",
   SOUDAL_SOUDAFOAM_FR:"Soudal Soudafoam FR", PENOSIL_PISTOLA:"Penosil 123 (pistola)",
   SOUDAL_SOUDAFLEX_40FC:"Soudaflex 40 FC", QUILOSA_PU50:"Quilosa PU-50 Masilla de Poliuretano",
@@ -401,6 +408,8 @@ const PNAMES = {
 const PBRANDS = {
   SIKAFLEX_11FC:"Sika", BOSTIK_P795:"Bostik", BOSTIK_P360:"Bostik", SOUDAL_SOUDASEAL:"Soudal", MAPEI_PU45:"Mapei",
   SIKABOOM_180:"Sika", SIKABOOM_580:"Sika", SIKABOOM_151:"Sika", SIKABOOM_582:"Sika", SIKABOOM_584:"Sika", SIKABOOM_420_FIRE:"Sika",
+  WURTH_PURLOGIC_FLEX:"Würth", WURTH_PU_TEJAS:"Würth", PENOSIL_PU49:"Penosil", PENOSIL_EASYGUN_PU45:"Penosil",
+  CEYS_ESPUMAX_PISTOLA:"Ceys", CEYS_ESPUMAX_MANUAL:"Ceys", CEYS_ESPUMAX_TEJAS:"Ceys",
   QUILOSA_ORBAFOAM_CAN:"Quilosa", QUILOSA_ORBAFOAM_PIS:"Quilosa", QUILOSA_ORBAFOAM_TEJ:"Quilosa", QUILOSA_FIRESTOP:"Quilosa",
   SOUDAL_SOUDAFOAM_CAN:"Soudal", SOUDAL_SOUDAFOAM_PIS:"Soudal", SOUDAL_SOUDAFOAM_FR:"Soudal", PENOSIL_PISTOLA:"Penosil",
   SOUDAL_SOUDAFLEX_40FC:"Soudal", QUILOSA_PU50:"Quilosa", FISCHER_PURFLEX:"Fischer", PENOSIL_TECNOPUR_P40:"Penosil",
@@ -414,6 +423,9 @@ const BRAND_SLUG = { "Würth":"Wurth" };
 const PCOLORS = {
   SIKAFLEX_11FC:"#FCC500", SIKABOOM_180:"#FCC500", SIKABOOM_580:"#FCC500", SIKABOOM_151:"#FCC500",
   SIKABOOM_582:"#E0AD00", SIKABOOM_584:"#B88F00", SIKABOOM_420_FIRE:"#8C6D00",
+  WURTH_PURLOGIC_FLEX:"#A6192E", WURTH_PU_TEJAS:"#A6192E",
+  PENOSIL_PU49:"#E8720C", PENOSIL_EASYGUN_PU45:"#D4650A",
+  CEYS_ESPUMAX_PISTOLA:"#7A1FA2", CEYS_ESPUMAX_MANUAL:"#7A1FA2", CEYS_ESPUMAX_TEJAS:"#7A1FA2",
   BOSTIK_P795:"#003087", BOSTIK_P360:"#3563AD",
   SOUDAL_SOUDASEAL:"#E20613", SOUDAL_SOUDAFOAM_CAN:"#E20613", SOUDAL_SOUDAFOAM_PIS:"#B8040F", SOUDAL_SOUDAFOAM_FR:"#720309",
   MAPEI_PU45:"#004C97",
@@ -429,9 +441,15 @@ const PCOLORS = {
 /* Categorías */
 const CATS = {
   Selladores:{sika:['SIKAFLEX_11FC'],comp:['SOUDAL_SOUDAFLEX_40FC','QUILOSA_PU50','FISCHER_PURFLEX','PENOSIL_TECNOPUR_P40','WURTH_MASTIC_PU40'],color:'#FCC500',icon:'🧴'},
-  Espumas:{sika:['SIKABOOM_180','SIKABOOM_580','SIKABOOM_151','SIKABOOM_582','SIKABOOM_584','SIKABOOM_420_FIRE'],
-           comp:['QUILOSA_ORBAFOAM_CAN','QUILOSA_ORBAFOAM_PIS','QUILOSA_ORBAFOAM_TEJ','SOUDAL_SOUDAFOAM_FR','SOUDAL_SOUDAFOAM_PIS','SOUDAL_SOUDAFOAM_CAN','SOUDAL_TEJAS','PENOSIL_PISTOLA','PENOSIL_PU46_PISTOLA','PENOSIL_PU46_MANUAL','FISCHER_PUP_PISTOLA','FISCHER_PU_MANUAL','FISCHER_PU_TEJAS','CEYS_ESPUMAX'],
-           color:'#0B8F83',icon:'🧯'},
+  Espumas:{
+    sika:['SIKABOOM_580','SIKABOOM_180','SIKABOOM_584','SIKABOOM_151'],
+    comp:[
+      'SOUDAL_SOUDAFOAM_PIS','QUILOSA_ORBAFOAM_PIS','WURTH_PURLOGIC_FLEX','FISCHER_PUP_PISTOLA','CEYS_ESPUMAX_PISTOLA','PENOSIL_PU46_PISTOLA',
+      'SOUDAL_SOUDAFOAM_CAN','QUILOSA_ORBAFOAM_CAN','FISCHER_PU_MANUAL','CEYS_ESPUMAX_MANUAL','PENOSIL_PU46_MANUAL',
+      'SOUDAL_TEJAS','FISCHER_PU_TEJAS','PENOSIL_PU49','QUILOSA_ORBAFOAM_TEJ','WURTH_PU_TEJAS','CEYS_ESPUMAX_TEJAS'
+    ],
+    color:'#0B8F83',icon:'🧯'
+  },
 };
 /* Listas derivadas de CATS: comparativa, ranking y pestañas usan SIEMPRE los mismos productos */
 const SIKA_P=[...CATS.Selladores.sika,...CATS.Espumas.sika];
@@ -441,20 +459,21 @@ const ALL_P=[...SIKA_P,...COMP_P];
 /* Rival directo de cada producto Sika (solo competidores que se rastrean).
    Edita aquí si quieres cambiar contra quién se compara cada producto. */
 const RIVALS = {
-  // Sikaflex-11FC: comparativa por cartucho (290-310ml) contra estos 5 rivales.
-  SIKAFLEX_11FC:     ['SOUDAL_SOUDAFLEX_40FC','QUILOSA_PU50','FISCHER_PURFLEX','PENOSIL_TECNOPUR_P40','WURTH_MASTIC_PU40'],
-  // Sika Boom-180 (manual/cánula). Falta confirmar tienda con precio para Würth.
-  SIKABOOM_180:      ['SOUDAL_SOUDAFOAM_CAN','QUILOSA_ORBAFOAM_CAN','FISCHER_PU_MANUAL','CEYS_ESPUMAX','PENOSIL_PU46_MANUAL'],
-  // Sika Boom-580 (pistola). Würth PU PurLogic Flex sin tienda con precio público.
-  SIKABOOM_580:      ['SOUDAL_SOUDAFOAM_PIS','QUILOSA_ORBAFOAM_PIS','FISCHER_PUP_PISTOLA','CEYS_ESPUMAX','PENOSIL_PU46_PISTOLA'],
-  // Sika Boom-151 Multiposición: el único rival pedido (Penosil EasyGun PU45) no
-  // tiene tienda online con precio público confirmado todavía.
-  SIKABOOM_151:      [],
-  SIKABOOM_582:      [],   // no solicitado en la petición de comparativas
-  // Sika Boom-584 (tejas). Pendientes: Penosil PU-49, Würth Espuma PU Tejas,
-  // Ceys Espumax Tejas Cánula y Quilosa Orbafoam Tejas (sin tienda confirmada).
-  SIKABOOM_584:      ['SOUDAL_TEJAS','FISCHER_PU_TEJAS'],
-  SIKABOOM_420_FIRE: ['SOUDAL_SOUDAFOAM_FR'],
+  SIKABOOM_580: [
+    'SOUDAL_SOUDAFOAM_PIS','QUILOSA_ORBAFOAM_PIS','WURTH_PURLOGIC_FLEX',
+    'FISCHER_PUP_PISTOLA','CEYS_ESPUMAX_PISTOLA','PENOSIL_PU46_PISTOLA'
+  ],
+  SIKABOOM_180: [
+    'SOUDAL_SOUDAFOAM_CAN','QUILOSA_ORBAFOAM_CAN','FISCHER_PU_MANUAL',
+    'CEYS_ESPUMAX_MANUAL','PENOSIL_PU46_MANUAL'
+  ],
+  SIKABOOM_584: [
+    'SOUDAL_TEJAS','FISCHER_PU_TEJAS','PENOSIL_PU49',
+    'QUILOSA_ORBAFOAM_TEJ','WURTH_PU_TEJAS','CEYS_ESPUMAX_TEJAS'
+  ],
+  SIKABOOM_151: [
+    'PENOSIL_EASYGUN_PU45'
+  ],
 };
 
 /* URL de cada tienda, tomada directamente de scraper.py (la CSV no guarda URL) */
