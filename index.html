@@ -506,16 +506,9 @@ const STORE_URLS = {
   "LeroyMerlin FischerPUPPistola":"https://www.leroymerlin.es/productos/pistola-fischer-espuma-poliuretano-pup-1k-750-84541566.html",
   "LeroyMerlin FischerPUManual":"https://www.leroymerlin.es/productos/espuma-de-poliuretano-expansiva-profesional-fischer-750-ml-manual-15355494.html",
   "LeroyMerlin FischerPUTejas":"https://www.leroymerlin.es/productos/espuma-de-poliuretano-expansiva-tejas-fischer-750-ml-pistola-15355522.html",
-  "GrupoIncera CeysEspumaxPistola":"https://www.grupoincera.com/shop/ceys-085-espumax-pistola-aislar-y-rellenar-750-ml-ref-504803-47364",
-  "GrupoIncera CeysEspumaxManual":"https://www.grupoincera.com/shop/ceys-068-espumax-manual-aislar-y-rellenar-750-ml-ref-504802-47362",
+  "ManoMano CeysEspumax":"https://www.manomano.es/p/espuma-poliuretano-aislar-y-rellenar-750ml-37597090",
   "ManoMano PenosilPU46Pistola":"https://www.manomano.es/p/espuma-poliuretano-pistola-pu46-750-ml-78235849",
   "TiendaReco PenosilPU46Manual":"https://tiendareco.com/ferreteria/productos-quimicos-pinturas-y-drogueria/colas-adhesivos-y-masillas/espuma-poliuretano-pu-46-manual-canula-750-ml-olive",
-  "Wurth PurLogicFlex":"https://www.wurth.es/espuma-pu-purlogic-flex-750ml",
-  "Penosil PU49 Pistola":"https://penosil.com/es/producto/espuma-tejas-pistola-pu-49p-para-pegar-tejas/",
-  "Penosil EasyGun PU45":"https://penosil.com/es/producto/espuma-mega-easygun-pu-45-alto-rendimiento-2-en-1/",
-  "LeroyMerlin Orbafoam Tejas":"https://www.leroymerlin.es/productos/espuma-poliuretano-orbafoam-tejas-750ml-84406744.html",
-  "Wurth PurLogic Duo Tejas":"https://www.wurth.es/purlogic-duo-adhesivo-tejas-750-ml",
-  "SuministrosCallosa CeysEspumaxTejas":"https://suministroscallosa.com/espuma-de-poliuretano-para-tejas-espumax/",
 };
 
 const PAGE_TITLES={
@@ -579,7 +572,7 @@ function parseCSV(txt){
   const lines=txt.trim().split(/\r?\n/);
   if(lines.length<2)return [];
   const hdrs=lines[0].split(',').map(h=>h.trim());
-  return lines.slice(1).map(l=>{
+  const rows=lines.slice(1).map(l=>{
     const v={},parts=l.split(',');
     hdrs.forEach((h,i)=>v[h]=(parts[i]||'').trim());
     v.price=parseFloat(v.price)||0;
@@ -587,6 +580,15 @@ function parseCSV(txt){
     if(!v.category)v.category=catOf(v.product)||'Selladores';
     return v;
   }).filter(r=>r.price>0&&r.date&&r.store);
+
+  // Evita duplicados idénticos del mismo producto/tienda/día en prices.csv.
+  // No elimina tiendas distintas ni días distintos.
+  const unique=new Map();
+  for(const r of rows){
+    const key=`${r.date}|${r.store}|${r.product}`;
+    unique.set(key,r);
+  }
+  return [...unique.values()];
 }
 
 function renderDashboard(){
